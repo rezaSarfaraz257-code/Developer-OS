@@ -32,18 +32,15 @@ export async function refreshAccessToken() {
     return null;
   }
 
-  const response = await fetch(
-    "http://127.0.0.1:8000/api/token/refresh/",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        refresh,
-      }),
-    }
-  );
+  const response = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("access")}`,
+    },
+    body: JSON.stringify({
+      refresh,
+    }),
+  });
 
   if (!response.ok) {
     localStorage.removeItem("access");

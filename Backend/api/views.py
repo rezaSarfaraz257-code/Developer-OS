@@ -13,6 +13,7 @@ def project_api(request):
 
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def projects_api(request):
     if request.method == "GET":
         projects = project.objects.all()

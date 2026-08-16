@@ -3,11 +3,23 @@ import ProjectCard from "../components/ProjectCard";
 import ProjectForm from "../components/ProjectForm";
 import "./App.css";
 import { apiFetch } from "./services/api";
+import Login from "../components/Login";
 
 function App() {
   const [projects, setProjects] = useState([]);
   const [editingProject, setEditingProject] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!!localStorage.getItem("access"));
+
+  if (!isLoading) {
+    return (
+      <Login
+        onLogin={() => {
+          setIsLoading(true);
+        }}
+      />
+    );
+  }
 
   useEffect(() => {
     apiFetch("/projects/")
