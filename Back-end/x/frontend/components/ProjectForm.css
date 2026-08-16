@@ -1,0 +1,38 @@
+form {
+  background-color: chocolate;
+  padding: 50px;
+  display: block;
+  align-items: center;
+  text-align: center;
+}
+
+input,
+textarea {
+  border-radius: 10px;
+  height: 30px;
+  text-align: center;
+  display: block;
+  margin-bottom: 10px;
+  width: 50%;
+  padding: 5px;
+  margin: 2px auto 0px auto;
+}
+
+textarea {
+  height: 200px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: white;
+}
+
+button {
+  background-color: chocolate;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  cursor: pointer;
+  margin: 20px;
+}
