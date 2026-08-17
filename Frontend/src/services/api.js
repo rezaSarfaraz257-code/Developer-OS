@@ -1,5 +1,41 @@
 const API_URL = "http://127.0.0.1:8000/api";
 
+export function clearAuth() {
+  localStorage.removeItem("access");
+  localStorage.removeItem("refresh");
+}
+
+export async function refreshAccessToken() {
+  const refresh = localStorage.getItem("refresh");
+
+  if (!refresh) {
+    return null;
+  }
+
+  const response = await fetch(`${API_URL}/token/refresh/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh }),
+  });
+
+  if (!response.ok) {
+    clearAuth();
+    return null;
+  }
+
+  const data = await response.json();
+
+  if (!data.access) {
+    clearAuth();
+    return null;
+  }
+
+  localStorage.setItem("access", data.access);
+  return data.access;
+}
+
 export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("access");
 
@@ -12,10 +48,22 @@ export async function apiFetch(endpoint, options = {}) {
     headers.Authorization = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
+  let response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
     headers,
   });
+
+  if (response.status === 401 && localStorage.getItem("refresh")) {
+    const refreshedToken = await refreshAccessToken();
+
+    if (refreshedToken) {
+      headers.Authorization = `Bearer ${refreshedToken}`;
+      response = await fetch(`${API_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
+    }
+  }
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -23,35 +71,4 @@ export async function apiFetch(endpoint, options = {}) {
   }
 
   return response;
-}
-
-export async function refreshAccessToken() {
-  const refresh = localStorage.getItem("refresh");
-
-  if (!refresh) {
-    return null;
-  }
-
-  const response = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("access")}`,
-    },
-    body: JSON.stringify({
-      refresh,
-    }),
-  });
-
-  if (!response.ok) {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-
-    return null;
-  }
-
-  const data = await response.json();
-
-  localStorage.setItem("access", data.access);
-
-  return data.access;
 }

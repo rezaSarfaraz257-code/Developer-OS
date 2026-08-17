@@ -1,4 +1,5 @@
 import { useState } from "react";
+import './Login.css'
 
 function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -37,7 +38,7 @@ function Login({ onLogin }) {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="login-form">
       <h2>Login</h2>
 
       <input

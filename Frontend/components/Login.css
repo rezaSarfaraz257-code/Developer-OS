@@ -1,0 +1,113 @@
+.login-form {
+  width: min(100%, 420px);
+  margin: 80px auto;
+  padding: 36px 28px 28px;
+  border-radius: 22px;
+  background: rgba(12, 18, 28, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 25px 60px rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(12px);
+  animation: fadeSlideUp 0.7s ease-out;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-form h2 {
+  margin: 0 0 24px;
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #f8fafc;
+  animation: pulseTitle 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes pulseTitle {
+  from {
+    text-shadow: 0 0 0 rgba(56, 189, 248, 0.2);
+  }
+
+  to {
+    text-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+  }
+}
+
+.login-form input {
+  width: 100%;
+  box-sizing: border-box;
+  height: 52px;
+  margin: 0 0 16px;
+  padding: 0 16px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.7);
+  color: #e2e8f0;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.login-form input::placeholder {
+  color: #94a3b8;
+}
+
+.login-form input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+  transform: translateY(-1px);
+}
+
+.login-form button {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #06b6d4, #2563eb);
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.login-form button:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 30px rgba(37, 99, 235, 0.4);
+  filter: brightness(1.08);
+}
+
+.login-form p {
+  margin-top: 18px;
+  text-align: center;
+  color: #fca5a5;
+  font-size: 0.95rem;
+  animation: shakeError 0.35s ease-in-out;
+}
+
+@keyframes shakeError {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  50% {
+    transform: translateX(4px);
+  }
+
+  75% {
+    transform: translateX(-3px);
+  }
+}

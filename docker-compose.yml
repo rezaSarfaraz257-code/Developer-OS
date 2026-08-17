@@ -1,0 +1,24 @@
+version: '3.9'
+
+services:
+  backend:
+    build: ./Backend
+    container_name: developer-os-backend
+    ports:
+      - "8000:8000"
+    working_dir: /app
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./Backend:/app
+
+  frontend:
+    build: ./Frontend
+    container_name: developer-os-frontend
+    ports:
+      - "5173:5173"
+    working_dir: /app
+    command: npm run dev -- --host 0.0.0.0
+    volumes:
+      - ./Frontend:/app
+    depends_on:
+      - backend
