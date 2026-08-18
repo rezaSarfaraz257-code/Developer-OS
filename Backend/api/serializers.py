@@ -1,6 +1,8 @@
-from rest_framework import serializers
-from .models import project, UserProfile
 from django.contrib.auth.models import User
+from rest_framework import serializers
+
+from .models import Favorite, Resource, UserProfile, Workflow, project
+
 
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -32,3 +34,21 @@ class UserSerializer(serializers.ModelSerializer):
             'last_name',
             'email',
         ]
+
+
+class ResourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Resource
+        fields = '__all__'
+
+
+class WorkflowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Workflow
+        fields = '__all__'
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = '__all__'

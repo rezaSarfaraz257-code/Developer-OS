@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 # Create your models here.
 
@@ -27,3 +27,41 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username} profile"
+
+
+class Resource(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default="")
+    resource_type = models.CharField(max_length=50, default="Guide")
+    category = models.CharField(max_length=80, default="General")
+    link = models.URLField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Workflow(models.Model):
+    title = models.CharField(max_length=200)
+    level = models.CharField(max_length=50, default="Beginner")
+    duration = models.CharField(max_length=50, default="Flexible")
+    summary = models.TextField(blank=True, default="")
+    steps = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
+    tool_name = models.CharField(max_length=100)
+    tag = models.CharField(max_length=50, blank=True, default="")
+    description = models.TextField(blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "tool_name")
+
+    def __str__(self):
+        return f"{self.user.username}: {self.tool_name}"
