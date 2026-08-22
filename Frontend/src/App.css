@@ -26,10 +26,18 @@ html {
 body {
   margin: 0;
   min-width: 320px;
-  font-family: Inter, 'Segoe UI', sans-serif;
+  font-family: Inter, "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(96, 165, 250, 0.14), transparent 28%),
-    radial-gradient(circle at top right, rgba(139, 92, 246, 0.16), transparent 30%),
+    radial-gradient(
+      circle at top left,
+      rgba(96, 165, 250, 0.14),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(139, 92, 246, 0.16),
+      transparent 30%
+    ),
     var(--bg);
   color: var(--text);
 }
@@ -124,6 +132,42 @@ img {
   color: var(--text);
 }
 
+.dropdown {
+  position: relative;
+}
+
+.dropdown-content {
+  color: var(--muted);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #06131f;
+  border: 1px solid rgba(15, 23, 42, 0.9);
+  border-radius: 12px;
+  padding: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dropdown:hover .dropdown-content {
+  display: flex;
+}
+
+.dropdown button {
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  text-align: left;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.dropdown button:hover {
+  background: rgba(96, 165, 250, 0.12);
+  color: var(--text);
+}
+
 .nav-actions {
   display: flex;
   align-items: center;
@@ -138,7 +182,10 @@ img {
 .icon-button {
   border: 1px solid transparent;
   border-radius: 14px;
-  transition: transform 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    border-color 0.18s ease,
+    opacity 0.18s ease;
 }
 
 .primary-button,
@@ -255,7 +302,11 @@ img {
 
 .hero-panel {
   position: relative;
-  background: linear-gradient(180deg, rgba(18, 29, 45, 0.98), rgba(8, 16, 30, 0.96));
+  background: linear-gradient(
+    180deg,
+    rgba(18, 29, 45, 0.98),
+    rgba(8, 16, 30, 0.96)
+  );
   border: 1px solid var(--line);
   border-radius: 26px;
   padding: 22px;
@@ -281,7 +332,11 @@ img {
 }
 
 .stack-card {
-  background: linear-gradient(180deg, rgba(16, 27, 42, 0.95), rgba(9, 18, 28, 0.92));
+  background: linear-gradient(
+    180deg,
+    rgba(16, 27, 42, 0.95),
+    rgba(9, 18, 28, 0.92)
+  );
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 18px 18px 14px;
@@ -414,7 +469,11 @@ img {
 .workflow-card,
 .resource-card {
   position: relative;
-  background: linear-gradient(180deg, rgba(14, 20, 31, 0.96), rgba(10, 14, 23, 0.96));
+  background: linear-gradient(
+    180deg,
+    rgba(14, 20, 31, 0.96),
+    rgba(10, 14, 23, 0.96)
+  );
   border: 1px solid var(--line);
   border-radius: 20px;
   padding: 18px 18px 16px;
@@ -423,17 +482,25 @@ img {
 }
 
 .tool-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0 0 auto;
   height: 3px;
   background: linear-gradient(90deg, var(--cyan), transparent);
 }
 
-.tool-card.cyan::before { background: linear-gradient(90deg, var(--cyan), transparent); }
-.tool-card.green::before { background: linear-gradient(90deg, var(--green), transparent); }
-.tool-card.blue::before { background: linear-gradient(90deg, var(--blue), transparent); }
-.tool-card.purple::before { background: linear-gradient(90deg, var(--purple), transparent); }
+.tool-card.cyan::before {
+  background: linear-gradient(90deg, var(--cyan), transparent);
+}
+.tool-card.green::before {
+  background: linear-gradient(90deg, var(--green), transparent);
+}
+.tool-card.blue::before {
+  background: linear-gradient(90deg, var(--blue), transparent);
+}
+.tool-card.purple::before {
+  background: linear-gradient(90deg, var(--purple), transparent);
+}
 
 .tool-top,
 .tool-meta {
@@ -604,7 +671,11 @@ img {
 }
 
 .dashboard-preview {
-  background: linear-gradient(180deg, rgba(12, 19, 30, 0.96), rgba(8, 12, 22, 0.96));
+  background: linear-gradient(
+    180deg,
+    rgba(12, 19, 30, 0.96),
+    rgba(8, 12, 22, 0.96)
+  );
   border: 1px solid var(--line);
   border-radius: 24px;
   padding: 18px 18px 20px;
@@ -680,9 +751,18 @@ img {
   display: inline-block;
 }
 
-.preview-icon.green { background: var(--green); box-shadow: 0 0 12px rgba(52, 211, 153, 0.8); }
-.preview-icon.blue { background: var(--blue); box-shadow: 0 0 12px rgba(96, 165, 250, 0.8); }
-.preview-icon.purple { background: var(--purple); box-shadow: 0 0 12px rgba(139, 92, 246, 0.8); }
+.preview-icon.green {
+  background: var(--green);
+  box-shadow: 0 0 12px rgba(52, 211, 153, 0.8);
+}
+.preview-icon.blue {
+  background: var(--blue);
+  box-shadow: 0 0 12px rgba(96, 165, 250, 0.8);
+}
+.preview-icon.purple {
+  background: var(--purple);
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.8);
+}
 
 .preview-item strong {
   display: block;
@@ -884,7 +964,11 @@ img {
 
 .sidebar-card {
   margin-top: 24px;
-  background: linear-gradient(135deg, rgba(52, 211, 153, 0.12), rgba(103, 232, 249, 0.06));
+  background: linear-gradient(
+    135deg,
+    rgba(52, 211, 153, 0.12),
+    rgba(103, 232, 249, 0.06)
+  );
   border: 1px solid rgba(52, 211, 153, 0.2);
   border-radius: 16px;
   padding: 16px;

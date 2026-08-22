@@ -9,6 +9,7 @@ import { apiFetch, clearAuth } from "./services/api";
 import Login from "../components/Login";
 import ToolsSection from "../components/ToolsSection";
 import ResourceSection from "../components/ResourceSection";
+import { Colors } from "chart.js";
 
 const categories = [
   "Frontend",
@@ -50,7 +51,8 @@ const tools = [
     id: 2,
     name: "Django",
     tag: "Backend",
-    description: "Ship secure and scalable APIs with a productive Python-first backend.",
+    description:
+      "Ship secure and scalable APIs with a productive Python-first backend.",
     accent: "green",
     rating: "4.8",
     descriptionLong:
@@ -61,12 +63,17 @@ const tools = [
     id: 3,
     name: "Docker",
     tag: "DevOps",
-    description: "Run consistent environments from development through production.",
+    description:
+      "Run consistent environments from development through production.",
     accent: "blue",
     rating: "4.7",
     descriptionLong:
       "Docker simplifies environment parity and deployment confidence. It allows developers to build once and run consistently across local, CI, and production environments.",
-    features: ["Container isolation", "CI/CD portability", "Environment parity"],
+    features: [
+      "Container isolation",
+      "CI/CD portability",
+      "Environment parity",
+    ],
   },
   {
     id: 4,
@@ -78,7 +85,11 @@ const tools = [
     rating: "4.9",
     descriptionLong:
       "The OpenAI API unlocks rapid prototyping, task automation, AI copilots, and project support. It is a strong choice for knowledge-heavy developer workflows and product features.",
-    features: ["Prompt-based workflows", "Product intelligence", "Automation support"],
+    features: [
+      "Prompt-based workflows",
+      "Product intelligence",
+      "Automation support",
+    ],
   },
 ];
 
@@ -150,66 +161,74 @@ const API_URL = "http://127.0.0.1:8000/api";
 const resourceLibrary = [
   {
     id: 1,
-    title: 'Production-ready React patterns',
-    type: 'Guide',
-    category: 'Frontend',
-    description: 'Patterns for clean state, architecture, and scalable UI systems.',
+    title: "Production-ready React patterns",
+    type: "Guide",
+    category: "Frontend",
+    description:
+      "Patterns for clean state, architecture, and scalable UI systems.",
   },
   {
     id: 2,
-    title: 'Django REST API patterns',
-    type: 'Tutorial',
-    category: 'Backend',
-    description: 'Learn serializers, permissions, and robust API layers for real apps.',
+    title: "Django REST API patterns",
+    type: "Tutorial",
+    category: "Backend",
+    description:
+      "Learn serializers, permissions, and robust API layers for real apps.",
   },
   {
     id: 3,
-    title: 'Engineering workflow templates',
-    type: 'Template',
-    category: 'Productivity',
-    description: 'Reusable setups for team rituals, issue flow, and development planning.',
+    title: "Engineering workflow templates",
+    type: "Template",
+    category: "Productivity",
+    description:
+      "Reusable setups for team rituals, issue flow, and development planning.",
   },
   {
     id: 4,
-    title: 'AI-assisted engineering playbook',
-    type: 'Playbook',
-    category: 'AI',
-    description: 'A practical resource for integrating AI into the product development loop.',
+    title: "AI-assisted engineering playbook",
+    type: "Playbook",
+    category: "AI",
+    description:
+      "A practical resource for integrating AI into the product development loop.",
   },
 ];
 
 const workflowLibrary = [
   {
     id: 1,
-    title: 'Full-stack delivery',
-    level: 'Intermediate',
-    duration: '2-3 weeks',
-    summary: 'A practical flow for building product-ready full-stack features with clear ownership.',
-    steps: ['Scope', 'UI prototype', 'API build', 'QA', 'Ship'],
+    title: "Full-stack delivery",
+    level: "Intermediate",
+    duration: "2-3 weeks",
+    summary:
+      "A practical flow for building product-ready full-stack features with clear ownership.",
+    steps: ["Scope", "UI prototype", "API build", "QA", "Ship"],
   },
   {
     id: 2,
-    title: 'API-first product',
-    level: 'Advanced',
-    duration: '1-2 weeks',
-    summary: 'Design the contract first, then ship stable interfaces with documentation and testing.',
-    steps: ['Spec', 'Model', 'Build', 'Document', 'Validate'],
+    title: "API-first product",
+    level: "Advanced",
+    duration: "1-2 weeks",
+    summary:
+      "Design the contract first, then ship stable interfaces with documentation and testing.",
+    steps: ["Spec", "Model", "Build", "Document", "Validate"],
   },
   {
     id: 3,
-    title: 'CI/CD pipeline',
-    level: 'Intermediate',
-    duration: 'Daily',
-    summary: 'Keep releases reliable with fast checks and predictable deployment processes.',
-    steps: ['Commit', 'Test', 'Build', 'Deploy', 'Monitor'],
+    title: "CI/CD pipeline",
+    level: "Intermediate",
+    duration: "Daily",
+    summary:
+      "Keep releases reliable with fast checks and predictable deployment processes.",
+    steps: ["Commit", "Test", "Build", "Deploy", "Monitor"],
   },
   {
     id: 4,
-    title: 'AI-assisted dev',
-    level: 'Beginner',
-    duration: 'Flexible',
-    summary: 'Use AI to accelerate exploration, coding, and product iteration without losing quality.',
-    steps: ['Prompt', 'Prototype', 'Review', 'Refine', 'Ship'],
+    title: "AI-assisted dev",
+    level: "Beginner",
+    duration: "Flexible",
+    summary:
+      "Use AI to accelerate exploration, coding, and product iteration without losing quality.",
+    steps: ["Prompt", "Prototype", "Review", "Refine", "Ship"],
   },
 ];
 
@@ -247,55 +266,59 @@ async function registerWithBackend(payload) {
 }
 
 function App() {
-  const [page, setPage] = useState('home');
+  const [page, setPage] = useState("home");
   const [selectedTool, setSelectedTool] = useState(tools[0]);
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflowLibrary[0]);
-  const [authMode, setAuthMode] = useState('login');
+  const [authMode, setAuthMode] = useState("login");
   const [favoriteTools, setFavoriteTools] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [resourceData, setResourceData] = useState(resourceLibrary);
   const [workflowData, setWorkflowData] = useState(workflowLibrary);
   const [isAuthenticated, setIsAuthenticated] = useState(
-    Boolean(localStorage.getItem('access')),
+    Boolean(localStorage.getItem("access")),
   );
 
   useEffect(() => {
     try {
-      const savedFavorites = JSON.parse(localStorage.getItem('favoriteTools') || '[]');
+      const savedFavorites = JSON.parse(
+        localStorage.getItem("favoriteTools") || "[]",
+      );
       if (Array.isArray(savedFavorites)) {
         setFavoriteTools(savedFavorites);
       }
     } catch (error) {
-      console.error('Failed to load favorite tools:', error);
+      console.error("Failed to load favorite tools:", error);
     }
   }, []);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      setFavoriteTools((current) => current.filter((item) => item.isLocalOnly ?? true));
+      setFavoriteTools((current) =>
+        current.filter((item) => item.isLocalOnly ?? true),
+      );
       return;
     }
 
     const loadFavorites = async () => {
       try {
-        const response = await apiFetch('/favorites/');
+        const response = await apiFetch("/favorites/");
         const data = await response.json();
 
         const normalized = Array.isArray(data)
           ? data.map((item) => ({
               id: item.id,
               name: item.tool_name,
-              tag: item.tag || 'General',
-              description: item.description || 'Saved tool',
-              accent: 'cyan',
+              tag: item.tag || "General",
+              description: item.description || "Saved tool",
+              accent: "cyan",
               isLocalOnly: false,
             }))
           : [];
 
         setFavoriteTools(normalized);
       } catch (error) {
-        console.error('Failed to load favorites from API:', error);
+        console.error("Failed to load favorites from API:", error);
       }
     };
 
@@ -306,8 +329,8 @@ function App() {
     const loadLibraries = async () => {
       try {
         const [resourcesResponse, workflowsResponse] = await Promise.all([
-          apiFetch('/resources/'),
-          apiFetch('/workflows/'),
+          apiFetch("/resources/"),
+          apiFetch("/workflows/"),
         ]);
 
         const [resourcesPayload, workflowsPayload] = await Promise.all([
@@ -323,7 +346,7 @@ function App() {
           setWorkflowData(workflowsPayload);
         }
       } catch (error) {
-        console.error('Failed to load library data:', error);
+        console.error("Failed to load library data:", error);
       }
     };
 
@@ -333,11 +356,11 @@ function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    localStorage.setItem('favoriteTools', JSON.stringify(favoriteTools));
+    localStorage.setItem("favoriteTools", JSON.stringify(favoriteTools));
   }, [favoriteTools]);
 
   useEffect(() => {
-    setIsAuthenticated(Boolean(localStorage.getItem('access')));
+    setIsAuthenticated(Boolean(localStorage.getItem("access")));
   }, [page]);
 
   const toggleFavorite = async (tool) => {
@@ -345,28 +368,34 @@ function App() {
       return;
     }
 
-    const exists = favoriteTools.some((item) => item.name === tool.name || item.id === tool.id);
+    const exists = favoriteTools.some(
+      (item) => item.name === tool.name || item.id === tool.id,
+    );
 
     if (isAuthenticated) {
       try {
         if (exists) {
-          const match = favoriteTools.find((item) => item.name === tool.name || item.id === tool.id);
+          const match = favoriteTools.find(
+            (item) => item.name === tool.name || item.id === tool.id,
+          );
           if (match) {
             await apiFetch(`/favorites/`, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' },
+              method: "DELETE",
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ tool_name: tool.name }),
             });
 
             setFavoriteTools((current) =>
-              current.filter((item) => item.name !== tool.name && item.id !== tool.id),
+              current.filter(
+                (item) => item.name !== tool.name && item.id !== tool.id,
+              ),
             );
             return;
           }
         } else {
-          const response = await apiFetch('/favorites/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          const response = await apiFetch("/favorites/", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               tool_name: tool.name,
               tag: tool.tag,
@@ -382,21 +411,25 @@ function App() {
               name: saved.tool_name,
               tag: saved.tag || tool.tag,
               description: saved.description || tool.description,
-              accent: tool.accent || 'cyan',
+              accent: tool.accent || "cyan",
               isLocalOnly: false,
             },
           ]);
           return;
         }
       } catch (error) {
-        console.error('Favorite sync failed:', error);
+        console.error("Favorite sync failed:", error);
       }
     }
 
     setFavoriteTools((current) => {
-      const alreadyFavorite = current.some((item) => item.name === tool.name || item.id === tool.id);
+      const alreadyFavorite = current.some(
+        (item) => item.name === tool.name || item.id === tool.id,
+      );
       if (alreadyFavorite) {
-        return current.filter((item) => item.name !== tool.name && item.id !== tool.id);
+        return current.filter(
+          (item) => item.name !== tool.name && item.id !== tool.id,
+        );
       }
       return [...current, { ...tool, isLocalOnly: !isAuthenticated }];
     });
@@ -404,13 +437,13 @@ function App() {
 
   const handleAuthSuccess = () => {
     setIsAuthenticated(true);
-    setPage('dashboard');
+    setPage("dashboard");
   };
 
   const handleLogout = () => {
     clearAuth();
     setIsAuthenticated(false);
-    setPage('home');
+    setPage("home");
   };
 
   return (
@@ -419,7 +452,7 @@ function App() {
         <button
           type="button"
           className="brand-button"
-          onClick={() => setPage('home')}
+          onClick={() => setPage("home")}
         >
           <div className="brand-wrap">
             <div className="brand-mark">D</div>
@@ -431,32 +464,63 @@ function App() {
         </button>
 
         <nav className="main-nav" aria-label="Main navigation">
-          <button type="button" onClick={() => setPage('explore')}>Explore</button>
-          <button type="button" onClick={() => setPage('workflows')}>Workflows</button>
-          <button type="button" onClick={() => setPage('favorites')}>Favorites</button>
-          <button type="button" onClick={() => setPage('resources')}>Resources</button>
-          <button type="button" onClick={() => setPage('dashboard')}>Dashboard</button>
-          <button type="button" onClick={() => setPage('profile')}>Profile</button>
-          <button type="button" onClick={() => setPage('auth')}>Login</button>
+          <button type="button" onClick={() => setPage("explore")}>
+            Explore
+          </button>
+          <button type="button" onClick={() => setPage("workflows")}>
+            Workflows
+          </button>
+          <button type="button" onClick={() => setPage("resources")}>
+            Resources
+          </button>
         </nav>
-
         <div className="nav-actions">
-          {isAuthenticated ? (
-            <button type="button" className="ghost-button" onClick={handleLogout}>
-              Logout
-            </button>
-          ) : (
-            <button type="button" className="ghost-button" onClick={() => setPage('auth')}>
-              Login
-            </button>
-          )}
-          <button type="button" className="primary-button" onClick={() => setPage('explore')}>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => setPage("explore")}
+          >
             Get started
           </button>
         </div>
+        <div className="dropdown" aria-label="Main navigation">
+          <button className="main">👤Account</button>
+          <div className="dropdown-content">
+            <button type="button" onClick={() => setPage("profile")}>
+              Profile
+            </button>
+            <button type="button" onClick={() => setPage("dashboard")}>
+              Dashboard
+            </button>
+            <button type="button" onClick={() => setPage("favorites")}>
+              Favorites
+            </button>
+            <button type="button" onClick={() => setPage("auth")}>
+              Login
+            </button>
+            {isAuthenticated ? (
+              <button
+                style={{ color: "red" }}
+                type="button"
+                className="ghost-button"
+                onClick={handleLogout}
+              >
+                Logout
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={() => setPage("auth")}
+              >
+                Login
+              </button>
+            )}
+          </div>
+        </div>
       </header>
 
-      {page === 'home' && (
+      {page === "home" && (
         <HomePage
           setPage={setPage}
           setSelectedTool={setSelectedTool}
@@ -468,7 +532,7 @@ function App() {
           setSelectedCategory={setSelectedCategory}
         />
       )}
-      {page === 'explore' && (
+      {page === "explore" && (
         <ExplorePage
           setPage={setPage}
           setSelectedTool={setSelectedTool}
@@ -480,8 +544,18 @@ function App() {
           setSelectedCategory={setSelectedCategory}
         />
       )}
-      {page === 'workflows' && <WorkflowsPage setPage={setPage} setSelectedWorkflow={setSelectedWorkflow} workflowData={workflowData} searchTerm={searchTerm} setSearchTerm={setSearchTerm} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />}
-      {page === 'favorites' && (
+      {page === "workflows" && (
+        <WorkflowsPage
+          setPage={setPage}
+          setSelectedWorkflow={setSelectedWorkflow}
+          workflowData={workflowData}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+      )}
+      {page === "favorites" && (
         <FavoritesPage
           setPage={setPage}
           favoriteTools={favoriteTools}
@@ -489,8 +563,17 @@ function App() {
           setSelectedTool={setSelectedTool}
         />
       )}
-      {page === 'resources' && <ResourcesPage setPage={setPage} resourceData={resourceData} searchTerm={searchTerm} setSearchTerm={setSearchTerm} selectedCategory={selectedCategory} setSelectedCategory={setSelectedCategory} />}
-      {page === 'auth' && (
+      {page === "resources" && (
+        <ResourcesPage
+          setPage={setPage}
+          resourceData={resourceData}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+      )}
+      {page === "auth" && (
         <AuthPage
           authMode={authMode}
           setAuthMode={setAuthMode}
@@ -498,10 +581,23 @@ function App() {
           onAuthSuccess={handleAuthSuccess}
         />
       )}
-      {page === 'dashboard' && <DashboardPage setPage={setPage} isAuthenticated={isAuthenticated} />}
-      {page === 'tool' && <ToolDetailPage tool={selectedTool} setPage={setPage} toggleFavorite={toggleFavorite} favoriteTools={favoriteTools} />}
-      {page === 'profile' && <ProfilePage setPage={setPage} isAuthenticated={isAuthenticated} />}
-      {page === 'workflow-detail' && <WorkflowDetailPage workflow={selectedWorkflow} setPage={setPage} />}
+      {page === "dashboard" && (
+        <DashboardPage setPage={setPage} isAuthenticated={isAuthenticated} />
+      )}
+      {page === "tool" && (
+        <ToolDetailPage
+          tool={selectedTool}
+          setPage={setPage}
+          toggleFavorite={toggleFavorite}
+          favoriteTools={favoriteTools}
+        />
+      )}
+      {page === "profile" && (
+        <ProfilePage setPage={setPage} isAuthenticated={isAuthenticated} />
+      )}
+      {page === "workflow-detail" && (
+        <WorkflowDetailPage workflow={selectedWorkflow} setPage={setPage} />
+      )}
 
       <footer className="site-footer">
         <div>
@@ -510,24 +606,43 @@ function App() {
         </div>
 
         <nav className="footer-nav" aria-label="Footer navigation">
-          <button type="button" onClick={() => setPage('explore')}>Explore</button>
-          <button type="button" onClick={() => setPage('workflows')}>Workflows</button>
-          <button type="button" onClick={() => setPage('favorites')}>Favorites</button>
-          <button type="button" onClick={() => setPage('resources')}>Resources</button>
-          <button type="button" onClick={() => setPage('dashboard')}>Dashboard</button>
+          <button type="button" onClick={() => setPage("explore")}>
+            Explore
+          </button>
+          <button type="button" onClick={() => setPage("workflows")}>
+            Workflows
+          </button>
+          <button type="button" onClick={() => setPage("favorites")}>
+            Favorites
+          </button>
+          <button type="button" onClick={() => setPage("resources")}>
+            Resources
+          </button>
+          <button type="button" onClick={() => setPage("dashboard")}>
+            Dashboard
+          </button>
         </nav>
       </footer>
     </div>
   );
 }
 
-function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, searchTerm, setSearchTerm, selectedCategory, setSelectedCategory }) {
+function HomePage({
+  setPage,
+  setSelectedTool,
+  favoriteTools,
+  toggleFavorite,
+  searchTerm,
+  setSearchTerm,
+  selectedCategory,
+  setSelectedCategory,
+}) {
   return (
     <main className="page-shell">
       <section className="hero-section">
         <div className="hero-copy">
           <span className="eyebrow">Developer ecosystem</span>
-          <h1>Your developer ecosystem, organized.</h1>
+          <h1>Your developer Ecosystem, organized.</h1>
           <p>
             Find the tools, workflows, and knowledge you need to build faster,
             think clearer, and ship with confidence.
@@ -537,14 +652,14 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
             <button
               type="button"
               className="primary-button large"
-              onClick={() => setPage('explore')}
+              onClick={() => setPage("explore")}
             >
               Explore tools
             </button>
             <button
               type="button"
               className="secondary-button large"
-              onClick={() => setPage('resources')}
+              onClick={() => setPage("resources")}
             >
               Browse resources
             </button>
@@ -598,7 +713,7 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
           <button
             type="button"
             className="ghost-button"
-            onClick={() => setPage('explore')}
+            onClick={() => setPage("explore")}
           >
             Advanced filters
           </button>
@@ -620,10 +735,10 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
             <button
               type="button"
               key={category}
-              className={`chip ${selectedCategory === category ? 'active' : ''}`}
+              className={`chip ${selectedCategory === category ? "active" : ""}`}
               onClick={() => {
                 setSelectedCategory(category);
-                setPage('explore');
+                setPage("explore");
               }}
             >
               {category}
@@ -641,7 +756,7 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
           <button
             type="button"
             className="section-link"
-            onClick={() => setPage('explore')}
+            onClick={() => setPage("explore")}
           >
             View all
           </button>
@@ -649,7 +764,9 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
 
         <div className="tool-grid">
           {tools.map((tool) => {
-            const isFavorite = favoriteTools.some((item) => item.name === tool.name || item.id === tool.id);
+            const isFavorite = favoriteTools.some(
+              (item) => item.name === tool.name || item.id === tool.id,
+            );
 
             return (
               <article key={tool.id} className={`tool-card ${tool.accent}`}>
@@ -657,11 +774,11 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
                   <span className="tool-tag">{tool.tag}</span>
                   <button
                     type="button"
-                    className={`icon-button ${isFavorite ? 'active-favorite' : ''}`}
+                    className={`icon-button ${isFavorite ? "active-favorite" : ""}`}
                     aria-label={`Save ${tool.name}`}
                     onClick={() => toggleFavorite(tool)}
                   >
-                    {isFavorite ? '♥' : '♡'}
+                    {isFavorite ? "♥" : "♡"}
                   </button>
                 </div>
                 <h3>{tool.name}</h3>
@@ -675,7 +792,7 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
                   className="text-button"
                   onClick={() => {
                     setSelectedTool(tool);
-                    setPage('tool');
+                    setPage("tool");
                   }}
                 >
                   Open tool →
@@ -695,7 +812,7 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
           <button
             type="button"
             className="section-link"
-            onClick={() => setPage('resources')}
+            onClick={() => setPage("resources")}
           >
             Explore more
           </button>
@@ -724,7 +841,7 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
           <button
             type="button"
             className="section-link"
-            onClick={() => setPage('resources')}
+            onClick={() => setPage("resources")}
           >
             Browse all
           </button>
@@ -766,7 +883,8 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
           <h2>Build your own developer OS.</h2>
           <p>
             Keep your tools, routes, resources, and active work in one place.
-            Save what matters, track your process, and move faster without losing context.
+            Save what matters, track your process, and move faster without
+            losing context.
           </p>
         </div>
 
@@ -820,9 +938,19 @@ function HomePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, sea
   );
 }
 
-function ExplorePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, searchTerm, setSearchTerm, selectedCategory, setSelectedCategory }) {
+function ExplorePage({
+  setPage,
+  setSelectedTool,
+  favoriteTools,
+  toggleFavorite,
+  searchTerm,
+  setSearchTerm,
+  selectedCategory,
+  setSelectedCategory,
+}) {
   const filteredTools = tools.filter((tool) => {
-    const matchesCategory = selectedCategory === 'All' || tool.tag === selectedCategory;
+    const matchesCategory =
+      selectedCategory === "All" || tool.tag === selectedCategory;
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const matchesSearch =
       normalizedSearch.length === 0 ||
@@ -843,7 +971,7 @@ function ExplorePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, 
         <button
           type="button"
           className="ghost-button"
-          onClick={() => setPage('home')}
+          onClick={() => setPage("home")}
         >
           Back home
         </button>
@@ -854,7 +982,7 @@ function ExplorePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, 
           <button
             type="button"
             key={category}
-            className={`chip ${selectedCategory === category ? 'active' : ''}`}
+            className={`chip ${selectedCategory === category ? "active" : ""}`}
             onClick={() => setSelectedCategory(category)}
           >
             {category}
@@ -874,11 +1002,15 @@ function ExplorePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, 
       </div>
 
       {filteredTools.length === 0 ? (
-        <div className="empty-box">No tools match the current search and category filters.</div>
+        <div className="empty-box">
+          No tools match the current search and category filters.
+        </div>
       ) : (
         <div className="tool-grid explore-grid">
           {filteredTools.map((tool) => {
-            const isFavorite = favoriteTools.some((item) => item.id === tool.id);
+            const isFavorite = favoriteTools.some(
+              (item) => item.id === tool.id,
+            );
 
             return (
               <article key={tool.id} className={`tool-card ${tool.accent}`}>
@@ -886,11 +1018,11 @@ function ExplorePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, 
                   <span className="tool-tag">{tool.tag}</span>
                   <button
                     type="button"
-                    className={`icon-button ${isFavorite ? 'active-favorite' : ''}`}
+                    className={`icon-button ${isFavorite ? "active-favorite" : ""}`}
                     aria-label={`Save ${tool.name}`}
                     onClick={() => toggleFavorite(tool)}
                   >
-                    {isFavorite ? '♥' : '♡'}
+                    {isFavorite ? "♥" : "♡"}
                   </button>
                 </div>
                 <h3>{tool.name}</h3>
@@ -904,7 +1036,7 @@ function ExplorePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, 
                   className="text-button"
                   onClick={() => {
                     setSelectedTool(tool);
-                    setPage('tool');
+                    setPage("tool");
                   }}
                 >
                   View details →
@@ -918,15 +1050,28 @@ function ExplorePage({ setPage, setSelectedTool, favoriteTools, toggleFavorite, 
   );
 }
 
-function WorkflowsPage({ setPage, setSelectedWorkflow, workflowData, searchTerm, setSearchTerm, selectedCategory, setSelectedCategory }) {
+function WorkflowsPage({
+  setPage,
+  setSelectedWorkflow,
+  workflowData,
+  searchTerm,
+  setSearchTerm,
+  selectedCategory,
+  setSelectedCategory,
+}) {
   const filteredWorkflows = workflowData.filter((workflow) => {
-    const matchesCategory = selectedCategory === 'All' || workflow.level === selectedCategory || workflow.title.includes(selectedCategory);
+    const matchesCategory =
+      selectedCategory === "All" ||
+      workflow.level === selectedCategory ||
+      workflow.title.includes(selectedCategory);
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const matchesSearch =
       normalizedSearch.length === 0 ||
       workflow.title.toLowerCase().includes(normalizedSearch) ||
       workflow.summary.toLowerCase().includes(normalizedSearch) ||
-      workflow.steps.some((step) => step.toLowerCase().includes(normalizedSearch));
+      workflow.steps.some((step) =>
+        step.toLowerCase().includes(normalizedSearch),
+      );
 
     return matchesCategory && matchesSearch;
   });
@@ -938,7 +1083,11 @@ function WorkflowsPage({ setPage, setSelectedWorkflow, workflowData, searchTerm,
           <span className="eyebrow">Workflows</span>
           <h2>Developer playbooks</h2>
         </div>
-        <button type="button" className="ghost-button" onClick={() => setPage('home')}>
+        <button
+          type="button"
+          className="ghost-button"
+          onClick={() => setPage("home")}
+        >
           Back home
         </button>
       </div>
@@ -948,7 +1097,7 @@ function WorkflowsPage({ setPage, setSelectedWorkflow, workflowData, searchTerm,
           <button
             type="button"
             key={category}
-            className={`chip ${selectedCategory === category ? 'active' : ''}`}
+            className={`chip ${selectedCategory === category ? "active" : ""}`}
             onClick={() => setSelectedCategory(category)}
           >
             {category}
@@ -968,7 +1117,9 @@ function WorkflowsPage({ setPage, setSelectedWorkflow, workflowData, searchTerm,
       </div>
 
       {filteredWorkflows.length === 0 ? (
-        <div className="empty-box">No workflows match the current search and category filters.</div>
+        <div className="empty-box">
+          No workflows match the current search and category filters.
+        </div>
       ) : (
         <div className="workflow-library-grid">
           {filteredWorkflows.map((workflow) => (
@@ -981,7 +1132,9 @@ function WorkflowsPage({ setPage, setSelectedWorkflow, workflowData, searchTerm,
               <p>{workflow.summary}</p>
               <div className="workflow-steps">
                 {workflow.steps.map((step) => (
-                  <span key={step} className="workflow-step">{step}</span>
+                  <span key={step} className="workflow-step">
+                    {step}
+                  </span>
                 ))}
               </div>
               <button
@@ -989,7 +1142,7 @@ function WorkflowsPage({ setPage, setSelectedWorkflow, workflowData, searchTerm,
                 className="text-button"
                 onClick={() => {
                   setSelectedWorkflow(workflow);
-                  setPage('workflow-detail');
+                  setPage("workflow-detail");
                 }}
               >
                 Open playbook →
@@ -1010,7 +1163,11 @@ function WorkflowDetailPage({ workflow, setPage }) {
           <span className="eyebrow">Workflow</span>
           <h2>{workflow.title}</h2>
         </div>
-        <button type="button" className="ghost-button" onClick={() => setPage('workflows')}>
+        <button
+          type="button"
+          className="ghost-button"
+          onClick={() => setPage("workflows")}
+        >
           Back to workflows
         </button>
       </div>
@@ -1024,7 +1181,9 @@ function WorkflowDetailPage({ workflow, setPage }) {
           <p>{workflow.summary}</p>
           <div className="workflow-steps detail-steps">
             {workflow.steps.map((step) => (
-              <span key={step} className="workflow-step">{step}</span>
+              <span key={step} className="workflow-step">
+                {step}
+              </span>
             ))}
           </div>
         </article>
@@ -1036,7 +1195,11 @@ function WorkflowDetailPage({ workflow, setPage }) {
             <li>Faster validation and decision flow</li>
             <li>Better continuity across team stages</li>
           </ul>
-          <button type="button" className="primary-button full-width" onClick={() => setPage('dashboard')}>
+          <button
+            type="button"
+            className="primary-button full-width"
+            onClick={() => setPage("dashboard")}
+          >
             Save to workspace
           </button>
         </aside>
@@ -1045,7 +1208,12 @@ function WorkflowDetailPage({ workflow, setPage }) {
   );
 }
 
-function FavoritesPage({ setPage, favoriteTools, toggleFavorite, setSelectedTool }) {
+function FavoritesPage({
+  setPage,
+  favoriteTools,
+  toggleFavorite,
+  setSelectedTool,
+}) {
   return (
     <main className="page-panel">
       <div className="page-header-row">
@@ -1053,13 +1221,19 @@ function FavoritesPage({ setPage, favoriteTools, toggleFavorite, setSelectedTool
           <span className="eyebrow">Favorites</span>
           <h2>Saved tools</h2>
         </div>
-        <button type="button" className="ghost-button" onClick={() => setPage('explore')}>
+        <button
+          type="button"
+          className="ghost-button"
+          onClick={() => setPage("explore")}
+        >
           Explore tools
         </button>
       </div>
 
       {favoriteTools.length === 0 ? (
-        <div className="empty-box">No favorite tools yet. Save a few from the tool library.</div>
+        <div className="empty-box">
+          No favorite tools yet. Save a few from the tool library.
+        </div>
       ) : (
         <div className="tool-grid explore-grid">
           {favoriteTools.map((tool) => (
@@ -1081,7 +1255,7 @@ function FavoritesPage({ setPage, favoriteTools, toggleFavorite, setSelectedTool
                 className="text-button"
                 onClick={() => {
                   setSelectedTool(tool);
-                  setPage('tool');
+                  setPage("tool");
                 }}
               >
                 View details →
@@ -1094,9 +1268,19 @@ function FavoritesPage({ setPage, favoriteTools, toggleFavorite, setSelectedTool
   );
 }
 
-function ResourcesPage({ setPage, resourceData, searchTerm, setSearchTerm, selectedCategory, setSelectedCategory }) {
+function ResourcesPage({
+  setPage,
+  resourceData,
+  searchTerm,
+  setSearchTerm,
+  selectedCategory,
+  setSelectedCategory,
+}) {
   const filteredResources = resourceData.filter((resource) => {
-    const matchesCategory = selectedCategory === 'All' || resource.category === selectedCategory || resource.type === selectedCategory;
+    const matchesCategory =
+      selectedCategory === "All" ||
+      resource.category === selectedCategory ||
+      resource.type === selectedCategory;
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const matchesSearch =
       normalizedSearch.length === 0 ||
@@ -1115,7 +1299,11 @@ function ResourcesPage({ setPage, resourceData, searchTerm, setSearchTerm, selec
           <span className="eyebrow">Resources</span>
           <h2>Developer library</h2>
         </div>
-        <button type="button" className="ghost-button" onClick={() => setPage('home')}>
+        <button
+          type="button"
+          className="ghost-button"
+          onClick={() => setPage("home")}
+        >
           Back home
         </button>
       </div>
@@ -1125,7 +1313,7 @@ function ResourcesPage({ setPage, resourceData, searchTerm, setSearchTerm, selec
           <button
             type="button"
             key={category}
-            className={`chip ${selectedCategory === category ? 'active' : ''}`}
+            className={`chip ${selectedCategory === category ? "active" : ""}`}
             onClick={() => setSelectedCategory(category)}
           >
             {category}
@@ -1145,7 +1333,9 @@ function ResourcesPage({ setPage, resourceData, searchTerm, setSearchTerm, selec
       </div>
 
       {filteredResources.length === 0 ? (
-        <div className="empty-box">No resources match the current search and category filters.</div>
+        <div className="empty-box">
+          No resources match the current search and category filters.
+        </div>
       ) : (
         <div className="resource-grid full-resource-grid">
           {filteredResources.map((resource) => (
@@ -1187,7 +1377,9 @@ function AuthPage({ authMode, setAuthMode, setPage, onAuthSuccess }) {
 
     try {
       if (authMode === "register") {
-        const [firstName, ...lastNameParts] = (form.fullName || "").trim().split(/\s+/);
+        const [firstName, ...lastNameParts] = (form.fullName || "")
+          .trim()
+          .split(/\s+/);
         const payload = {
           username: form.username,
           email: form.email,
@@ -1217,7 +1409,8 @@ function AuthPage({ authMode, setAuthMode, setPage, onAuthSuccess }) {
           <span className="eyebrow">Developer access</span>
           <h2>Access your workspace</h2>
           <p>
-            Keep your tools, projects, and learning paths in a single place designed for modern developers.
+            Keep your tools, projects, and learning paths in a single place
+            designed for modern developers.
           </p>
           <ul>
             <li>Track progress</li>
@@ -1313,7 +1506,11 @@ function AuthPage({ authMode, setAuthMode, setPage, onAuthSuccess }) {
 
             {error && <div className="auth-error">{error}</div>}
 
-            <button type="submit" className="primary-button full-width" disabled={loading}>
+            <button
+              type="submit"
+              className="primary-button full-width"
+              disabled={loading}
+            >
               {loading
                 ? "Please wait..."
                 : authMode === "login"
@@ -1378,7 +1575,9 @@ function DashboardPage({ setPage, isAuthenticated }) {
   };
 
   const totalProjects = projectsData.length;
-  const completedProjects = projectsData.filter((item) => item.completed).length;
+  const completedProjects = projectsData.filter(
+    (item) => item.completed,
+  ).length;
   const activeProjects = Math.max(0, totalProjects - completedProjects);
 
   if (!isAuthenticated) {
@@ -1387,7 +1586,11 @@ function DashboardPage({ setPage, isAuthenticated }) {
         <div className="auth-required-box">
           <span className="eyebrow">Access required</span>
           <h2>Please login to view your dashboard</h2>
-          <button type="button" className="primary-button" onClick={() => setPage("auth")}>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => setPage("auth")}
+          >
             Go to login
           </button>
         </div>
@@ -1407,10 +1610,22 @@ function DashboardPage({ setPage, isAuthenticated }) {
         </div>
 
         <nav className="sidebar-nav">
-          <button type="button" className="nav-item active">Overview</button>
-          <button type="button" className="nav-item">Projects</button>
-          <button type="button" className="nav-item">Saved tools</button>
-          <button type="button" className="nav-item" onClick={() => setPage("profile")}>Profile</button>
+          <button type="button" className="nav-item active">
+            Overview
+          </button>
+          <button type="button" className="nav-item">
+            Projects
+          </button>
+          <button type="button" className="nav-item">
+            Saved tools
+          </button>
+          <button
+            type="button"
+            className="nav-item"
+            onClick={() => setPage("profile")}
+          >
+            Profile
+          </button>
         </nav>
 
         <div className="sidebar-card">
@@ -1462,7 +1677,9 @@ function DashboardPage({ setPage, isAuthenticated }) {
           {loading ? (
             <div className="loading-box">Loading projects...</div>
           ) : projectsData.length === 0 ? (
-            <div className="empty-box">No projects yet. Create your first project.</div>
+            <div className="empty-box">
+              No projects yet. Create your first project.
+            </div>
           ) : (
             projectsData.map((project) => (
               <ProjectCard
@@ -1523,7 +1740,7 @@ function ToolDetailPage({ tool, setPage, toggleFavorite, favoriteTools }) {
             className="primary-button full-width"
             onClick={() => toggleFavorite(tool)}
           >
-            {isFavorite ? 'Remove from favorites' : 'Save to workspace'}
+            {isFavorite ? "Remove from favorites" : "Save to workspace"}
           </button>
           <button
             type="button"
@@ -1634,7 +1851,11 @@ function ProfilePage({ setPage, isAuthenticated }) {
         <div className="auth-required-box">
           <span className="eyebrow">Access required</span>
           <h2>Please login to view your profile</h2>
-          <button type="button" className="primary-button" onClick={() => setPage("auth")}>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => setPage("auth")}
+          >
             Go to login
           </button>
         </div>
@@ -1642,12 +1863,16 @@ function ProfilePage({ setPage, isAuthenticated }) {
     );
   }
 
-  const profileName = profile?.full_name || [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || "Developer";
-  const initials = profileName
-    .split(" ")
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() || "")
-    .join("") || "D";
+  const profileName =
+    profile?.full_name ||
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
+    "Developer";
+  const initials =
+    profileName
+      .split(" ")
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("") || "D";
 
   return (
     <main className="profile-page">
@@ -1657,10 +1882,18 @@ function ProfilePage({ setPage, isAuthenticated }) {
           <h2>Developer profile</h2>
         </div>
         <div className="profile-actions">
-          <button type="button" className="ghost-button" onClick={() => setPage("dashboard")}>
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => setPage("dashboard")}
+          >
             Dashboard
           </button>
-          <button type="button" className="primary-button" onClick={() => setIsEditing((current) => !current)}>
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => setIsEditing((current) => !current)}
+          >
             {isEditing ? "Cancel" : "Edit profile"}
           </button>
         </div>
@@ -1670,7 +1903,10 @@ function ProfilePage({ setPage, isAuthenticated }) {
         <section className="profile-card-panel">
           <div className="profile-avatar">{initials}</div>
           <h3>{profileName}</h3>
-          <p>{profile?.bio || "Full-stack developer focused on product UX and backend architecture."}</p>
+          <p>
+            {profile?.bio ||
+              "Full-stack developer focused on product UX and backend architecture."}
+          </p>
 
           <div className="profile-meta">
             {profile?.github && <span>GitHub</span>}
@@ -1686,38 +1922,77 @@ function ProfilePage({ setPage, isAuthenticated }) {
             <div className="profile-editor">
               <label>
                 Full name
-                <input name="full_name" value={form.full_name} onChange={handleChange} />
+                <input
+                  name="full_name"
+                  value={form.full_name}
+                  onChange={handleChange}
+                />
               </label>
               <label>
                 First name
-                <input name="first_name" value={form.first_name} onChange={handleChange} />
+                <input
+                  name="first_name"
+                  value={form.first_name}
+                  onChange={handleChange}
+                />
               </label>
               <label>
                 Last name
-                <input name="last_name" value={form.last_name} onChange={handleChange} />
+                <input
+                  name="last_name"
+                  value={form.last_name}
+                  onChange={handleChange}
+                />
               </label>
               <label>
                 Email
-                <input name="email" type="email" value={form.email} onChange={handleChange} />
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                />
               </label>
               <label>
                 Bio
-                <textarea name="bio" value={form.bio} onChange={handleChange} rows="4" />
+                <textarea
+                  name="bio"
+                  value={form.bio}
+                  onChange={handleChange}
+                  rows="4"
+                />
               </label>
               <label>
                 GitHub
-                <input name="github" value={form.github} onChange={handleChange} />
+                <input
+                  name="github"
+                  value={form.github}
+                  onChange={handleChange}
+                />
               </label>
               <label>
                 LinkedIn
-                <input name="linkedin" value={form.linkedin} onChange={handleChange} />
+                <input
+                  name="linkedin"
+                  value={form.linkedin}
+                  onChange={handleChange}
+                />
               </label>
               <label>
                 Website
-                <input name="website" value={form.website} onChange={handleChange} />
+                <input
+                  name="website"
+                  value={form.website}
+                  onChange={handleChange}
+                />
               </label>
 
-              <button type="button" className="primary-button" onClick={handleSaveProfile} disabled={saving}>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={handleSaveProfile}
+                disabled={saving}
+              >
                 {saving ? "Saving..." : "Save profile"}
               </button>
             </div>
