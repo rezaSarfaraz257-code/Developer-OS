@@ -9,4 +9,5 @@ urlpatterns = [
     path("favorites/", views.favorites_api, name="favorites"),
     path("resources/", views.resources_api, name="resources"),
     path("workflows/", views.workflows_api, name="workflows"),
+    path("tools/", views.tools_api, name="tools"),
 ]

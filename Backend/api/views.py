@@ -5,8 +5,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Favorite, Resource, UserProfile, Workflow, project
-from .serializers import FavoriteSerializer, ProjectSerializer, ResourceSerializer, WorkflowSerializer
+from .models import Favorite, Resource, Tool, UserProfile, Workflow, project
+from .serializers import FavoriteSerializer, ProjectSerializer, ResourceSerializer, ToolSerializer, WorkflowSerializer
 
 
 @api_view(["GET", "POST"])
@@ -206,5 +206,20 @@ def workflows_api(request):
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=201)
+
+    return Response(serializer.errors, status=400)
+
+
+@api_view(["GET", "POST"])
+def tools_api(request):
+    if request.method == "GET":
+        tools = Tool.objects.all().order_by("-created_at")
+        serializer = ToolSerializer(tools, many=True)
+        return Response(serializer.data)
+
+    serializer = ToolSerializer(data=request.data)
+    if serializer.is_valid():
+        tool = serializer.save()
+        return Response(ToolSerializer(tool).data, status=201)
 
     return Response(serializer.errors, status=400)

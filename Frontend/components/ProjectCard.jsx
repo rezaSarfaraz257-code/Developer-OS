@@ -52,9 +52,31 @@ function ProjectCard({ project, onEdit, onDelete, updated, style }) {
       aria-busy={isDeleting}
       style={style}
     >
-      <h2>{project.title}</h2>
+      <div className="project-card-header">
+        <h2>{project.title}</h2>
+        <span className="project-tag">{project.category || "General"}</span>
+      </div>
 
       <p>{project.description}</p>
+
+      <div className="project-meta-row">
+        <span className="project-status">{project.status || "In Progress"}</span>
+        {project.link && (
+          <a href={project.link} target="_blank" rel="noreferrer" className="project-link">
+            Open link
+          </a>
+        )}
+      </div>
+
+      {Array.isArray(project.tags) && project.tags.length > 0 && (
+        <div className="project-tags">
+          {project.tags.map((tag) => (
+            <span key={tag} className="project-tag small-tag">
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="project-card-actions">
         <button className="edit-button" onClick={() => onEdit(project)}>

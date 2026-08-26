@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import Favorite, Resource, UserProfile, Workflow, project
+from .models import Favorite, Resource, Tool, UserProfile, Workflow, project
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -51,4 +51,10 @@ class WorkflowSerializer(serializers.ModelSerializer):
 class FavoriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Favorite
+        fields = '__all__'
+
+
+class ToolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tool
         fields = '__all__'
