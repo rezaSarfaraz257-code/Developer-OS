@@ -18,7 +18,7 @@ import FavoritesPage from "./Pages/Favorites/Favorites";
 import ResourcesPage from "./Pages/Resources/Resources";
 import AuthPage from "./Pages/Auth/Auth";
 import DashboardPage from "./Pages/Dashbourd/Dashboard";
-import ProfilePage from "../components/Profile";
+import ProfilePage from "./Pages/Profile/Profile";
 
 const categories = [
   "Frontend",

@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import { apiFetch, clearAuth } from "../../services/api";
+import "./Profile.css";
 
 export default function ProfilePage({ setPage, isAuthenticated }) {
   const [profile, setProfile] = useState(null);
