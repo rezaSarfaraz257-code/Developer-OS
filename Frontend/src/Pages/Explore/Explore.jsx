@@ -1,3 +1,17 @@
+import "./Explore.css";
+
+const filterCategories = [
+  "All",
+  "Frontend",
+  "Backend",
+  "DevOps",
+  "AI",
+  "Design",
+  "Testing",
+  "Data",
+  "Security",
+];
+
 export default function ExplorePage({
   setPage,
   setSelectedTool,
@@ -7,6 +21,7 @@ export default function ExplorePage({
   setSearchTerm,
   selectedCategory,
   setSelectedCategory,
+  tools = [],
 }) {
   const filteredTools = tools.filter((tool) => {
     const matchesCategory =

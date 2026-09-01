@@ -1,3 +1,8 @@
+import { useEffect, useState } from "react";
+import ProjectCard from "../../../components/ProjectCard";
+import ProjectForm from "../../../components/ProjectForm";
+import { apiFetch, clearAuth } from "../../services/api";
+
 export default function DashboardPage({ setPage, isAuthenticated }) {
   const [projectsData, setProjectsData] = useState([]);
   const [editingProject, setEditingProject] = useState(null);
@@ -49,9 +54,7 @@ export default function DashboardPage({ setPage, isAuthenticated }) {
   };
 
   const totalProjects = projectsData.length;
-  const completedProjects = projectsData.filter(
-    (item) => item.completed,
-  ).length;
+  const completedProjects = projectsData.filter((item) => item.completed).length;
   const activeProjects = Math.max(0, totalProjects - completedProjects);
 
   if (!isAuthenticated) {

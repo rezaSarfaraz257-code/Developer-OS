@@ -1,6 +1,8 @@
+import "./Favorites.css";
+
 export default function FavoritesPage({
   setPage,
-  favoriteTools,
+  favoriteTools = [],
   toggleFavorite,
   setSelectedTool,
 }) {
@@ -27,7 +29,7 @@ export default function FavoritesPage({
       ) : (
         <div className="tool-grid explore-grid">
           {favoriteTools.map((tool) => (
-            <article key={tool.id} className={`tool-card ${tool.accent}`}>
+            <article key={tool.id ?? tool.name} className={`tool-card ${tool.accent}`}>
               <div className="tool-top">
                 <span className="tool-tag">{tool.tag}</span>
                 <button

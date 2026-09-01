@@ -1,10 +1,14 @@
+import "./WorkFlows.css";
+
+const filterCategories = ["All", "Beginner", "Intermediate", "Advanced"];
+
 export default function WorkflowsPage({
   setPage,
   setSelectedWorkflow,
-  workflowData,
-  searchTerm,
+  workflowData = [],
+  searchTerm = "",
   setSearchTerm,
-  selectedCategory,
+  selectedCategory = "All",
   setSelectedCategory,
 }) {
   const filteredWorkflows = workflowData.filter((workflow) => {
@@ -16,8 +20,8 @@ export default function WorkflowsPage({
     const matchesSearch =
       normalizedSearch.length === 0 ||
       workflow.title.toLowerCase().includes(normalizedSearch) ||
-      workflow.summary.toLowerCase().includes(normalizedSearch) ||
-      workflow.steps.some((step) =>
+      (workflow.summary || "").toLowerCase().includes(normalizedSearch) ||
+      (workflow.steps || []).some((step) =>
         step.toLowerCase().includes(normalizedSearch),
       );
 
@@ -79,7 +83,7 @@ export default function WorkflowsPage({
               <h3>{workflow.title}</h3>
               <p>{workflow.summary}</p>
               <div className="workflow-steps">
-                {workflow.steps.map((step) => (
+                {(workflow.steps || []).map((step) => (
                   <span key={step} className="workflow-step">
                     {step}
                   </span>

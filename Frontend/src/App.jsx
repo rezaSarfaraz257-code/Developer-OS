@@ -10,9 +10,15 @@ import Login from "../components/Login";
 import ToolsSection from "../components/ToolsSection";
 import ResourceSection from "../components/ResourceSection";
 import { Colors } from "chart.js";
-import Logo from "./components/logo";
 import HomePage from "./Pages/Home/HomePages";
 import NavBar from "./components/NavBar";
+import ExplorePage from "./Pages/Explore/Explore";
+import WorkflowsPage from "./Pages/WorkFlows/WorkFlows";
+import FavoritesPage from "./Pages/Favorites/Favorites";
+import ResourcesPage from "./Pages/Resources/Resources";
+import AuthPage from "./Pages/Auth/Auth";
+import DashboardPage from "./Pages/Dashbourd/Dashboard";
+import ProfilePage from "../components/Profile";
 
 const categories = [
   "Frontend",
@@ -282,6 +288,14 @@ function App() {
     Boolean(localStorage.getItem("access")),
   );
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+
+    setIsAuthenticated(false);
+    setPage("auth");
+  };
+
   useEffect(() => {
     try {
       const savedFavorites = JSON.parse(
@@ -443,17 +457,15 @@ function App() {
     setPage("dashboard");
   };
 
-  const handleLogout = () => {
-    clearAuth();
-    setIsAuthenticated(false);
-    setPage("home");
-  };
-
   const src = "./assets/devlogo.png";
 
   return (
     <div className="developeros-page">
-      <NavBar />
+      <NavBar
+        setPage={setPage}
+        isAuthenticated={isAuthenticated}
+        handleLogout={handleLogout}
+      />
 
       {page === "home" && (
         <HomePage
@@ -465,6 +477,10 @@ function App() {
           setSearchTerm={setSearchTerm}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
+          tools={tools}
+          workflows={workflowLibrary}
+          resources={resourceLibrary}
+          recommendations={recommendations}
         />
       )}
       {page === "explore" && (
@@ -477,6 +493,7 @@ function App() {
           setSearchTerm={setSearchTerm}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
+          tools={tools}
         />
       )}
       {page === "workflows" && (
@@ -514,6 +531,8 @@ function App() {
           setAuthMode={setAuthMode}
           setPage={setPage}
           onAuthSuccess={handleAuthSuccess}
+          loginWithBackend={loginWithBackend}
+          registerWithBackend={registerWithBackend}
         />
       )}
       {page === "dashboard" && (

@@ -1,22 +1,43 @@
-import './HomePage.css'
+import "./HomePage.css";
 
+const filterCategories = [
+  "All",
+  "Frontend",
+  "Backend",
+  "AI",
+  "DevOps",
+  "Database",
+];
 
 export default function HomePage({
   setPage,
   setSelectedTool,
-  favoriteTools,
+  setSelectedWorkflow,
+  favoriteTools = [],
   toggleFavorite,
   searchTerm,
   setSearchTerm,
   selectedCategory,
   setSelectedCategory,
+  tools = [],
+  workflows = [],
+  resources = [],
+  recommendations = [],
 }) {
+  const stats = [
+    { label: "Tools", value: "250+" },
+    { label: "Workflows", value: "80+" },
+    { label: "Resources", value: "120+" },
+  ];
+
   return (
     <main className="page-shell">
       <section className="hero-section">
         <div className="hero-copy">
           <span className="eyebrow">Developer ecosystem</span>
+
           <h1>Your developer Ecosystem, organized.</h1>
+
           <p>
             Find the tools, workflows, and knowledge you need to build faster,
             think clearer, and ship with confidence.
@@ -30,6 +51,7 @@ export default function HomePage({
             >
               Explore tools
             </button>
+
             <button
               type="button"
               className="secondary-button large"
@@ -57,7 +79,9 @@ export default function HomePage({
 
           <div className="stack-card">
             <div className="mini-label">Current setup</div>
+
             <h3>React + Django + Docker</h3>
+
             <ul>
               <li>Frontend architecture</li>
               <li>API-first workflows</li>
@@ -70,6 +94,7 @@ export default function HomePage({
               <strong>92%</strong>
               <span>Focus</span>
             </div>
+
             <div>
               <strong>{favoriteTools.length}</strong>
               <span>Saved</span>
@@ -84,6 +109,7 @@ export default function HomePage({
             <span className="eyebrow">Discover</span>
             <h2>Search your ecosystem</h2>
           </div>
+
           <button
             type="button"
             className="ghost-button"
@@ -95,9 +121,10 @@ export default function HomePage({
 
         <div className="search-bar">
           <span className="search-icon">⌕</span>
+
           <input
             type="text"
-            value={searchTerm}
+            value={searchTerm || ""}
             onChange={(event) => setSearchTerm(event.target.value)}
             placeholder="Search tools, workflows, resources..."
             aria-label="Search"
@@ -127,6 +154,7 @@ export default function HomePage({
             <span className="eyebrow">Featured</span>
             <h2>Top tools</h2>
           </div>
+
           <button
             type="button"
             className="section-link"
@@ -143,9 +171,13 @@ export default function HomePage({
             );
 
             return (
-              <article key={tool.id} className={`tool-card ${tool.accent}`}>
+              <article
+                key={tool.id}
+                className={`tool-card ${tool.accent || ""}`}
+              >
                 <div className="tool-top">
                   <span className="tool-tag">{tool.tag}</span>
+
                   <button
                     type="button"
                     className={`icon-button ${isFavorite ? "active-favorite" : ""}`}
@@ -155,12 +187,16 @@ export default function HomePage({
                     {isFavorite ? "♥" : "♡"}
                   </button>
                 </div>
+
                 <h3>{tool.name}</h3>
+
                 <p>{tool.description}</p>
+
                 <div className="tool-meta">
                   <span>Popular</span>
                   <span>{tool.rating}/5</span>
                 </div>
+
                 <button
                   type="button"
                   className="text-button"
@@ -183,10 +219,11 @@ export default function HomePage({
             <span className="eyebrow">Playbooks</span>
             <h2>Developer workflows</h2>
           </div>
+
           <button
             type="button"
             className="section-link"
-            onClick={() => setPage("resources")}
+            onClick={() => setPage("workflows")}
           >
             Explore more
           </button>
@@ -194,11 +231,21 @@ export default function HomePage({
 
         <div className="workflow-grid">
           {workflows.map((workflow) => (
-            <article key={workflow.title} className="workflow-card">
+            <article key={workflow.id ?? workflow.title} className="workflow-card">
               <span className="workflow-level">{workflow.level}</span>
+
               <h3>{workflow.title}</h3>
-              <p>{workflow.steps}</p>
-              <button type="button" className="text-button">
+
+              <p>{workflow.summary || workflow.steps}</p>
+
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => {
+                  setSelectedWorkflow?.(workflow);
+                  setPage("workflow-detail");
+                }}
+              >
                 Open workflow →
               </button>
             </article>
@@ -212,102 +259,49 @@ export default function HomePage({
             <span className="eyebrow">Library</span>
             <h2>Learning resources</h2>
           </div>
+
           <button
             type="button"
             className="section-link"
             onClick={() => setPage("resources")}
           >
-            Browse all
+            Explore more
           </button>
         </div>
 
-        <div className="resource-grid">
+        <div className="resource-grid full-resource-grid">
           {resources.map((resource) => (
-            <article key={resource.title} className="resource-card">
+            <article key={resource.id ?? resource.title} className="resource-card">
               <span className="resource-type">{resource.type}</span>
               <h3>{resource.title}</h3>
+              <small className="resource-category">{resource.category}</small>
               <p>{resource.description}</p>
-              <button type="button" className="text-button">
-                Read now →
+              <button type="button" className="text-button" onClick={() => setPage("resources")}>
+                Open resource →
               </button>
             </article>
           ))}
         </div>
       </section>
 
-      <section className="recommendation-panel" id="favorites">
-        <div>
-          <span className="eyebrow">Recommended</span>
-          <h2>For your stack</h2>
-        </div>
-
-        <div className="recommendation-list">
-          {recommendations.map((item) => (
-            <div key={item} className="recommendation-item">
-              <span className="dot" />
-              <span>{item}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section className="workspace-preview">
-        <div className="workspace-copy">
-          <span className="eyebrow">Workspace</span>
-          <h2>Build your own developer OS.</h2>
-          <p>
-            Keep your tools, routes, resources, and active work in one place.
-            Save what matters, track your process, and move faster without
-            losing context.
-          </p>
-        </div>
-
-        <div className="dashboard-preview">
-          <div className="preview-header">
-            <span>Overview</span>
-            <span className="preview-pill">Live</span>
-          </div>
-
-          <div className="preview-stats">
+      {recommendations.length > 0 && (
+        <section className="content-section">
+          <div className="section-heading">
             <div>
-              <strong>12</strong>
-              <span>Projects</span>
-            </div>
-            <div>
-              <strong>{favoriteTools.length}</strong>
-              <span>Favorites</span>
-            </div>
-            <div>
-              <strong>4</strong>
-              <span>Focus blocks</span>
+              <span className="eyebrow">Recommended</span>
+              <h2>Focus areas</h2>
             </div>
           </div>
 
-          <div className="preview-list">
-            <div className="preview-item">
-              <span className="preview-icon green" />
-              <div>
-                <strong>Frontend refactor</strong>
-                <small>In progress</small>
-              </div>
-            </div>
-            <div className="preview-item">
-              <span className="preview-icon blue" />
-              <div>
-                <strong>API performance</strong>
-                <small>Ready for review</small>
-              </div>
-            </div>
-            <div className="preview-item">
-              <span className="preview-icon purple" />
-              <div>
-                <strong>AI workflow notes</strong>
-                <small>Saved</small>
-              </div>
-            </div>
+          <div className="recommendation-list">
+            {recommendations.map((item) => (
+              <span key={item} className="recommendation-pill">
+                {item}
+              </span>
+            ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </main>
   );
 }

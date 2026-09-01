@@ -1,5 +1,5 @@
 
-function ProfilePage({ setPage, isAuthenticated }) {
+export default function ProfilePage({ setPage, isAuthenticated }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

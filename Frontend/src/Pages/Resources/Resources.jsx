@@ -1,9 +1,22 @@
+import "./Resources.css";
+
+const filterCategories = [
+  "All",
+  "Frontend",
+  "Backend",
+  "DevOps",
+  "AI",
+  "Productivity",
+  "Design",
+  "Data",
+];
+
 export default function ResourcesPage({
   setPage,
-  resourceData,
-  searchTerm,
+  resourceData = [],
+  searchTerm = "",
   setSearchTerm,
-  selectedCategory,
+  selectedCategory = "All",
   setSelectedCategory,
 }) {
   const filteredResources = resourceData.filter((resource) => {

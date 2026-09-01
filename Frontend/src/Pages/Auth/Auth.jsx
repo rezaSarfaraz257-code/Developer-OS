@@ -1,8 +1,13 @@
+import { useState } from "react";
+import "./Auth.css";
+
 export default function AuthPage({
   authMode,
   setAuthMode,
   setPage,
   onAuthSuccess,
+  loginWithBackend,
+  registerWithBackend,
 }) {
   const [form, setForm] = useState({
     username: "",
