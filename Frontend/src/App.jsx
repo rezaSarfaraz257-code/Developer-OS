@@ -20,6 +20,19 @@ import AuthPage from "./Pages/Auth/Auth";
 import DashboardPage from "./Pages/Dashbourd/Dashboard";
 import ProfilePage from "./Pages/Profile/Profile";
 import Footer from "./components/Footer/Footer";
+import ProjectDetailPage from "./Project/ProjectDetail/ProjectDetail";
+import TasksPage from "./Project/Tasks/Tasks";
+import NotesPage from "./Project/Notes/Notes";
+import ActivityPage from "./Project/Activity/Activity";
+import TagsPage from "./Project/Tags/Tags";
+import BookmarksPage from "./Project/Bookmarks/Bookmarks";
+import AdvancedDashboardPage from "./Project/AdvancedDashboard/AdvancedDashboard";
+import AIAssistantPage from "./Project/AIAssistant/AIAssistant";
+import CollaborationPage from "./Project/Collaboration/Collaboration";
+import ProductionPage from "./Project/Production/Production";
+import OverviewPage from "./Project/Overview/Overview";
+import SnippetsPage from "./Project/Snippets/Snippets";
+import GitHubPage from "./Project/GitHub/GitHub";
 
 const categories = [
   "Frontend",
@@ -568,6 +581,21 @@ function App() {
       {page === "profile" && (
         <ProfilePage setPage={setPage} isAuthenticated={isAuthenticated} />
       )}
+      {page === "project-detail" && (
+        <ProjectDetailPage setPage={setPage} project={{}} />
+      )}
+      {page === "tasks" && <TasksPage setPage={setPage} tasks={[]} />}
+      {page === "notes" && <NotesPage setPage={setPage} notes={[]} />}
+      {page === "activity" && <ActivityPage setPage={setPage} activities={[]} />}
+      {page === "tags" && <TagsPage setPage={setPage} tags={[]} />}
+      {page === "bookmarks" && <BookmarksPage setPage={setPage} bookmarks={favoriteTools} />}
+      {page === "advanced" && <AdvancedDashboardPage setPage={setPage} />}
+      {page === "ai" && <AIAssistantPage setPage={setPage} />}
+      {page === "collaboration" && <CollaborationPage setPage={setPage} />}
+      {page === "production" && <ProductionPage setPage={setPage} />}
+      {page === "overview" && <OverviewPage setPage={setPage} project={{}} />}
+      {page === "snippets" && <SnippetsPage setPage={setPage} snippets={[]} />}
+      {page === "github" && <GitHubPage setPage={setPage} repo={{}} />}
       {page === "workflow-detail" && (
         <WorkflowDetailPage workflow={selectedWorkflow} setPage={setPage} />
       )}

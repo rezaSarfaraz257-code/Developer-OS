@@ -111,3 +111,100 @@ class Tool(models.Model):
     def __str__(self):
         return self.name
 
+
+class Tag(models.Model):
+    name = models.CharField(max_length=80, unique=True)
+    slug = models.SlugField(max_length=100, unique=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Task(models.Model):
+    STATUS = [("todo", "To Do"), ("in_progress", "In Progress"), ("done", "Done"), ("blocked", "Blocked")]
+
+    title = models.CharField(max_length=200)
+    description = models.TextField(blank=True, default="")
+    status = models.CharField(max_length=32, choices=STATUS, default="todo")
+    assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks")
+    project = models.ForeignKey(project, on_delete=models.CASCADE, null=True, blank=True, related_name="tasks")
+    due_date = models.DateField(null=True, blank=True)
+    tags = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class Note(models.Model):
+    title = models.CharField(max_length=200, blank=True, default="")
+    content = models.TextField()
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="notes")
+    project = models.ForeignKey(project, on_delete=models.CASCADE, null=True, blank=True, related_name="notes")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title or f"Note {self.pk}"
+
+
+class Activity(models.Model):
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="activities")
+    verb = models.CharField(max_length=200)
+    message = models.TextField(blank=True, default="")
+    related_type = models.CharField(max_length=100, blank=True, default="")
+    related_id = models.IntegerField(null=True, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.actor or 'System'} {self.verb}"
+
+
+class Snippet(models.Model):
+    LANGUAGE_CHOICES = [
+        ("py", "Python"),
+        ("js", "JavaScript"),
+        ("sh", "Shell"),
+        ("sql", "SQL"),
+        ("md", "Markdown"),
+        ("txt", "Text"),
+    ]
+
+    title = models.CharField(max_length=200)
+    code = models.TextField()
+    language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES, default="py")
+    description = models.TextField(blank=True, default="")
+    author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="snippets")
+    tags = models.JSONField(default=list, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
+class GitHubOAuthState(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="github_states")
+    state = models.CharField(max_length=200, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.state}"
+
+
+class GitHubAccount(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="github_account")
+    github_id = models.IntegerField(null=True, blank=True)
+    login = models.CharField(max_length=200, blank=True, default="")
+    access_token = models.TextField(blank=True, default="")
+    scope = models.CharField(max_length=200, blank=True, default="")
+    token_type = models.CharField(max_length=50, blank=True, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} -> {self.login or 'github'}"
+
