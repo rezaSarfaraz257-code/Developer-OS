@@ -95,7 +95,6 @@ img {
   font-weight: 800;
   color: #06131f;
   background: linear-gradient(135deg, var(--cyan), var(--green));
-  
 }
 
 .brand-kicker {
@@ -226,7 +225,6 @@ img {
   padding: 0 24px;
 }
 
-
 .brand-button {
   background: transparent;
   border: none;
@@ -288,7 +286,6 @@ img {
 .explore-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
-
 
 .dashboard-page {
   display: grid;
@@ -357,6 +354,23 @@ img {
 .dashboard-main {
   display: grid;
   gap: 18px;
+}
+
+.quick-actions-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quick-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.quick-chart {
+  min-width: 240px;
+  max-width: 360px;
 }
 
 .stats-grid {
@@ -476,7 +490,6 @@ img {
 .mini-panel strong {
   font-size: 1.2rem;
 }
-
 
 .auth-error {
   padding: 10px 12px;
@@ -677,6 +690,59 @@ img {
   font-size: 0.72rem;
 }
 
+.feature-highlight {
+  margin-top: 18px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.feature-card {
+  background: linear-gradient(
+    180deg,
+    rgba(12, 20, 32, 0.96),
+    rgba(9, 14, 22, 0.88)
+  );
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 18px 45px rgba(2, 6, 23, 0.2);
+}
+
+.feature-card h3 {
+  margin: 14px 0 10px;
+  font-size: 1.3rem;
+}
+
+.feature-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: rgba(103, 232, 249, 0.12);
+  border: 1px solid rgba(103, 232, 249, 0.25);
+  color: var(--cyan);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.accent-card .feature-icon {
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.25);
+  color: #c4b5fd;
+}
+
 @media (max-width: 980px) {
   .hero-section {
     grid-template-columns: 1fr;
@@ -704,6 +770,10 @@ img {
   .dashboard-page {
     grid-template-columns: 1fr;
   }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 720px) {
@@ -727,8 +797,7 @@ img {
   .dashboard-header-row,
   .profile-header-row,
   .search-header,
-  .section-heading,
-  .site-footer {
+  .section-heading {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -745,9 +814,6 @@ img {
     grid-template-columns: 1fr;
   }
 
-  .site-footer {
-    width: 100%;
-  }
 
   .full-resource-grid {
     grid-template-columns: 1fr;
@@ -756,4 +822,96 @@ img {
   .workflow-library-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Saved tools in dashboard sidebar */
+.saved-tools-card {
+  padding: 16px;
+}
+
+.saved-tools-empty {
+  padding: 10px;
+  font-size: 0.9rem;
+}
+
+.saved-tools-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+  max-height: 220px;
+  overflow: auto;
+  padding-right: 6px; /* allow space for scrollbar */
+}
+
+.saved-tool-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.04);
+}
+
+.saved-tool-name {
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.saved-tool-action {
+  min-width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+}
+
+/* small scrollbar styling */
+.saved-tools-list::-webkit-scrollbar {
+  width: 8px;
+}
+.saved-tools-list::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.12);
+  border-radius: 8px;
+}
+
+/* Quick-create modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(2, 6, 23, 0.6);
+  z-index: 80;
+}
+
+.quick-create-modal {
+  width: 520px;
+  max-width: calc(100% - 40px);
+  background: rgba(9, 14, 22, 0.98);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.quick-create-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.quick-create-form label {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 8px;
 }

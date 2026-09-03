@@ -19,6 +19,7 @@ import ResourcesPage from "./Pages/Resources/Resources";
 import AuthPage from "./Pages/Auth/Auth";
 import DashboardPage from "./Pages/Dashbourd/Dashboard";
 import ProfilePage from "./Pages/Profile/Profile";
+import Footer from "./components/Footer/Footer";
 
 const categories = [
   "Frontend",
@@ -287,11 +288,10 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     Boolean(localStorage.getItem("access")),
   );
+  const [authError, setAuthError] = useState(null);
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-
+    clearAuth();
     setIsAuthenticated(false);
     setPage("auth");
   };
@@ -379,6 +379,18 @@ function App() {
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem("access")));
   }, [page]);
+
+  useEffect(() => {
+    const handler = (e) => {
+      const msg = e?.detail?.message || "Authentication required";
+      setAuthError(msg);
+      setIsAuthenticated(false);
+      setPage("auth");
+    };
+
+    window.addEventListener("auth:expired", handler);
+    return () => window.removeEventListener("auth:expired", handler);
+  }, [setPage]);
 
   const toggleFavorite = async (tool) => {
     if (!tool) {
@@ -533,10 +545,17 @@ function App() {
           onAuthSuccess={handleAuthSuccess}
           loginWithBackend={loginWithBackend}
           registerWithBackend={registerWithBackend}
+          initialError={authError}
         />
       )}
       {page === "dashboard" && (
-        <DashboardPage setPage={setPage} isAuthenticated={isAuthenticated} />
+        <DashboardPage
+          setPage={setPage}
+          isAuthenticated={isAuthenticated}
+          favoriteTools={favoriteTools}
+          toggleFavorite={toggleFavorite}
+          setSelectedTool={setSelectedTool}
+        />
       )}
       {page === "tool" && (
         <ToolDetailPage
@@ -553,30 +572,7 @@ function App() {
         <WorkflowDetailPage workflow={selectedWorkflow} setPage={setPage} />
       )}
 
-      <footer className="site-footer">
-        <div>
-          <strong>Developer OS</strong>
-          <p>Build with clarity. Stay in flow.</p>
-        </div>
-
-        <nav className="footer-nav" aria-label="Footer navigation">
-          <button type="button" onClick={() => setPage("explore")}>
-            Explore
-          </button>
-          <button type="button" onClick={() => setPage("workflows")}>
-            Workflows
-          </button>
-          <button type="button" onClick={() => setPage("favorites")}>
-            Favorites
-          </button>
-          <button type="button" onClick={() => setPage("resources")}>
-            Resources
-          </button>
-          <button type="button" onClick={() => setPage("dashboard")}>
-            Dashboard
-          </button>
-        </nav>
-      </footer>
+      <Footer />
     </div>
   );
 }

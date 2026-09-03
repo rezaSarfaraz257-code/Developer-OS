@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./Auth.css";
 
 export default function AuthPage({
@@ -8,6 +8,7 @@ export default function AuthPage({
   onAuthSuccess,
   loginWithBackend,
   registerWithBackend,
+  initialError = null,
 }) {
   const [form, setForm] = useState({
     username: "",
@@ -17,6 +18,12 @@ export default function AuthPage({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (initialError) {
+      setError(initialError);
+    }
+  }, [initialError]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

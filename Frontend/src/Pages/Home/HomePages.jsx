@@ -231,7 +231,10 @@ export default function HomePage({
 
         <div className="workflow-grid">
           {workflows.map((workflow) => (
-            <article key={workflow.id ?? workflow.title} className="workflow-card">
+            <article
+              key={workflow.id ?? workflow.title}
+              className="workflow-card"
+            >
               <span className="workflow-level">{workflow.level}</span>
 
               <h3>{workflow.title}</h3>
@@ -271,16 +274,61 @@ export default function HomePage({
 
         <div className="resource-grid full-resource-grid">
           {resources.map((resource) => (
-            <article key={resource.id ?? resource.title} className="resource-card">
+            <article
+              key={resource.id ?? resource.title}
+              className="resource-card"
+            >
               <span className="resource-type">{resource.type}</span>
               <h3>{resource.title}</h3>
               <small className="resource-category">{resource.category}</small>
               <p>{resource.description}</p>
-              <button type="button" className="text-button" onClick={() => setPage("resources")}>
+              <button
+                type="button"
+                className="text-button"
+                onClick={() => setPage("resources")}
+              >
                 Open resource →
               </button>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="feature-highlight">
+        <div className="section-heading">
+          <div>
+            <span className="eyebrow">Why it matters</span>
+            <h2>Built for the way modern developers work</h2>
+          </div>
+        </div>
+
+        <div className="feature-grid">
+          <article className="feature-card">
+            <div className="feature-icon">▣</div>
+            <h3>Organize your stack</h3>
+            <p>
+              Keep the best tools, patterns, and setups in one workflow that
+              stays clear as your product grows.
+            </p>
+          </article>
+
+          <article className="feature-card accent-card">
+            <div className="feature-icon">◎</div>
+            <h3>Follow proven workflows</h3>
+            <p>
+              Move from prototype to release with repeatable playbooks designed
+              for real team velocity.
+            </p>
+          </article>
+
+          <article className="feature-card">
+            <div className="feature-icon">✦</div>
+            <h3>Learn without friction</h3>
+            <p>
+              Save resources, compare approaches, and build your own trusted
+              engineering system over time.
+            </p>
+          </article>
         </div>
       </section>
 

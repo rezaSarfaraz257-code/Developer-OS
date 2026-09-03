@@ -247,16 +247,36 @@ export default function ProfilePage({ setPage, isAuthenticated }) {
             <>
               <div className="stats-grid compact-grid">
                 <div className="stat-card">
-                  <span>Username</span>
-                  <strong>{profile?.username || "-"}</strong>
+                  <span>Username: </span>
+                  <strong className="us">{profile?.username}</strong>
                 </div>
                 <div className="stat-card">
-                  <span>Email</span>
-                  <strong>{profile?.email || "-"}</strong>
+                  <span >Full-name: </span>
+                  <strong className="fs">{profile?.full_name}</strong>
                 </div>
                 <div className="stat-card">
-                  <span>Website</span>
-                  <strong>{profile?.website ? "Linked" : "-"}</strong>
+                  <span >Name: </span>
+                  <strong className="ns">{profile?.first_name}</strong>
+                </div>
+                <div className="stat-card">
+                  <span >Last-Name: </span>
+                  <strong className="ls">{profile?.last_name}</strong>
+                </div>
+                <div className="stat-card">
+                  <span >Email: </span>
+                  <strong className="es">{profile?.email}</strong>
+                </div>
+                <div className="stat-card">
+                  <span >GitHub:</span>
+                  <strong className="gs">{profile?.github}</strong>
+                </div>
+                <div className="stat-card">
+                  <span>LinkedIn: </span>
+                  <strong className="lis">{profile?.linkedin}</strong>
+                </div>
+                <div className="stat-card">
+                  <span >Website: </span>
+                  <strong className="ws">{profile?.website}</strong>
                 </div>
               </div>
 

@@ -1,0 +1,25 @@
+span {
+  padding-right: 10px;
+}
+
+.stat-card-active {
+  background-color: rgb(1, 246, 165);
+  padding-top: 10px;
+  color: black;
+  border-radius: 10px;
+}
+
+.stat-card-completed {
+    background-color: darkorange;
+    padding-top: 10px;
+    color: black;
+    border-radius: 10px;
+}
+
+
+.stat-card-active:hover {
+  transform: translateY(-2px);
+}
+.stat-card-completed:hover {
+  transform: translateY(-2px);
+}

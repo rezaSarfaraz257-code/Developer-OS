@@ -1,7 +1,21 @@
+import { useState } from "react";
 import devlogo from "../assets/devlogo.png";
 import "./Navbar.css";
 
 export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
+  const [profile, setProfile] = useState(null);
+
+
+  const profileName =
+    profile?.full_name ||
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
+    "Developer";
+  const initials =
+    profileName
+      .split(" ")
+      .slice(0, 2)
+      .map((part) => part[0]?.toUpperCase() || "")
+      .join("") || "D";
   return (
     <header className="topbar">
       {/* Brand */}
@@ -13,7 +27,7 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
       >
         <div className="brand-wrap">
           <div className="brand-mark">
-            <img src={devlogo} alt="Developer OS"  />
+            <img src={devlogo} alt="Developer OS" />
           </div>
 
           <div className="brand-text">
@@ -51,8 +65,8 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
 
       {/* Account Dropdown */}
       <div className="dropdown">
-        <button type="button" className="main" aria-label="Open account menu">
-          👤 Account
+        <button type="button" className="main" aria-label="Open account menu" onClick={() => setProfile()}>
+          {initials}
         </button>
 
         <div className="dropdown-content">
