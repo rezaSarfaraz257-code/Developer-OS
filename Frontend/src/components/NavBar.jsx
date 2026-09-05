@@ -3,22 +3,18 @@ import devlogo from "../assets/devlogo.png";
 import "./Navbar.css";
 
 export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
-  const [profile, setProfile] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-
-  const profileName =
-    profile?.full_name ||
-    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
-    "Developer";
+  const profileName = "Developer";
   const initials =
     profileName
       .split(" ")
       .slice(0, 2)
       .map((part) => part[0]?.toUpperCase() || "")
       .join("") || "D";
+
   return (
     <header className="topbar">
-      {/* Brand */}
       <button
         title="Home"
         type="button"
@@ -37,7 +33,6 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
         </div>
       </button>
 
-      {/* Main Navigation */}
       <nav className="main-nav" aria-label="Main navigation">
         <button type="button" onClick={() => setPage("explore")}>
           Explore
@@ -52,8 +47,14 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
         </button>
       </nav>
 
-      {/* Actions */}
       <div className="nav-actions">
+        <button
+          type="button"
+          className="secondary-button nav-cta"
+          onClick={() => setPage("dashboard")}
+        >
+          Dashboard
+        </button>
         <button
           type="button"
           className="primary-button"
@@ -63,22 +64,45 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
         </button>
       </div>
 
-      {/* Account Dropdown */}
-      <div className="dropdown">
-        <button type="button" className="main" aria-label="Open account menu" onClick={() => setProfile()}>
+      <div className="dropdown" onMouseLeave={() => setIsMenuOpen(false)}>
+        <button
+          type="button"
+          className="main"
+          aria-label="Open account menu"
+          aria-expanded={isMenuOpen}
+          onClick={() => setIsMenuOpen((open) => !open)}
+        >
           {initials}
         </button>
 
-        <div className="dropdown-content">
-          <button type="button" onClick={() => setPage("profile")}>
+        <div className={`dropdown-content ${isMenuOpen ? "open" : ""}`}>
+          <button
+            type="button"
+            onClick={() => {
+              setPage("profile");
+              setIsMenuOpen(false);
+            }}
+          >
             Profile
           </button>
 
-          <button type="button" onClick={() => setPage("dashboard")}>
+          <button
+            type="button"
+            onClick={() => {
+              setPage("dashboard");
+              setIsMenuOpen(false);
+            }}
+          >
             Dashboard
           </button>
 
-          <button type="button" onClick={() => setPage("favorites")}>
+          <button
+            type="button"
+            onClick={() => {
+              setPage("favorites");
+              setIsMenuOpen(false);
+            }}
+          >
             Favorites
           </button>
 
@@ -86,7 +110,10 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
             <button
               type="button"
               className="ghost-button logout-button"
-              onClick={handleLogout}
+              onClick={() => {
+                handleLogout();
+                setIsMenuOpen(false);
+              }}
             >
               Logout
             </button>
@@ -94,7 +121,10 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
             <button
               type="button"
               className="ghost-button"
-              onClick={() => setPage("auth")}
+              onClick={() => {
+                setPage("auth");
+                setIsMenuOpen(false);
+              }}
             >
               Login
             </button>

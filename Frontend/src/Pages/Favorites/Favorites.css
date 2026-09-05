@@ -1,0 +1,112 @@
+.favorites-page {
+  display: grid;
+  gap: 18px;
+}
+
+.favorites-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.favorite-stat {
+  background: rgba(9, 14, 22, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.favorite-stat span {
+  display: block;
+  color: #9cb0c8;
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.favorite-stat strong {
+  font-size: 1.7rem;
+}
+
+.favorite-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.favorite-card {
+  background: linear-gradient(180deg, rgba(12, 20, 32, 0.96), rgba(8, 12, 18, 0.9));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+  box-shadow: 0 20px 40px rgba(2, 6, 23, 0.18);
+}
+
+.favorite-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.favorite-card h3 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.favorite-card p {
+  margin: 0;
+  color: #9cb0c8;
+  line-height: 1.7;
+}
+
+.favorite-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(103, 232, 249, 0.12);
+  border: 1px solid rgba(103, 232, 249, 0.2);
+  color: #a5f3fc;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.favorite-button-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.favorite-card .text-button {
+  background: transparent;
+  border: none;
+  color: #e5eefb;
+  padding: 0;
+  font-weight: 600;
+}
+
+.empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  background: rgba(9, 14, 22, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 22px;
+  text-align: center;
+  color: #9cb0c8;
+  padding: 28px;
+}
+
+@media (max-width: 700px) {
+  .favorites-summary,
+  .favorite-list {
+    grid-template-columns: 1fr;
+  }
+}

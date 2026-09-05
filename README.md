@@ -1,47 +1,76 @@
 # Developer OS
 
-Developer OS is a developer-focused workspace for organizing tools, workflows, resources, and project context in one place.
+<div align="center">
+  <img src="https://img.shields.io/badge/Project-Developer%20OS-0A84FF?style=for-the-badge&logo=github" alt="Developer OS" />
+  <img src="https://img.shields.io/badge/Stack-Django%20%2B%20React-5EEAD4?style=for-the-badge" alt="Stack" />
+  <img src="https://img.shields.io/badge/Status-Prototype%20%2F%20MVP-34D399?style=for-the-badge" alt="Status" />
+</div>
 
-It brings together:
+Developer OS is a digital workspace for developers to organize tools, workflows, resources, projects, and context in a single ecosystem.
+
+It is designed to act like a developer operating system: a central place to capture what you use, how you work, and what matters to your product and engineering growth.
+
+## Why this project matters
+
+Modern developers work across many disconnected surfaces:
+- GitHub and repositories
+- project boards and issues
+- docs and wikis
+- bookmarks and tutorials
+- local notes and ideas
+- personal workflow systems
+
+Developer OS brings those pieces together into one coherent digital environment.
+
+## Core concept
+
+Instead of scattered tools and repeated context switching, the platform creates a structured developer hub for:
 - project tracking
-- developer tools and references
-- project notes and metadata
-- profile management
-- dashboard analytics and search
-- a clean workspace for building and shipping work
+- workflow management
+- resource curation
+- skill and tool inventory
+- personal developer profile
+- dashboard analytics and overview
+- smarter daily execution
 
-This project combines:
-- Django + DRF backend
-- React + Vite frontend
-- JWT authentication
-- SQLite for local development
+## Product vision
 
-## Project Goal
+Developer OS aims to become the central nervous system for a developer's digital work life.
 
-The goal of Developer OS is to help developers collect, manage, and access the tools, routines, references, and knowledge they need in a single ecosystem.
+It gives developers:
+- a clean overview of active work
+- searchable, organized resources
+- reusable workflows and routines
+- a strong context layer for projects
+- a place to keep valuable engineering knowledge near the work
 
-It is designed for:
-- tracking active work
-- centralizing key resources
-- managing developer workflows
-- keeping project context in one place
-- accelerating day-to-day execution
+## Feature highlights
 
-## Tech Stack
+- project creation and management
+- profile and identity management
+- dashboard metrics and overview
+- searchable project list
+- project metadata and categories
+- developer resource organization
+- workflow and task tracking
+- secure JWT-based authentication
+- responsive frontend experience
 
-Frontend
+## Technical stack
+
+### Frontend
 - React
 - Vite
-- CSS modules / custom CSS
-- Chart.js + react-chartjs-2
+- CSS and component-driven UI
+- charts and analytics views
 
-Backend
+### Backend
 - Django
 - Django REST Framework
 - Simple JWT
-- SQLite
+- SQLite for local development
 
-## Repository Structure
+## Repository layout
 
 ```text
 Developer-os/
@@ -57,18 +86,24 @@ Developer-os/
 │   ├── public/
 │   ├── package.json
 │   └── vite.config.js
+├── docs/
+│   ├── README.md
+│   ├── architecture.md
+│   └── developer-workflows.md
 ├── env/
 ├── .gitignore
 ├── README.md
-└── .github/
+├── PROJECT.md
+├── TODO.md
+└── CONTRIBUTING.md
 ```
 
-## Quick Start
+## Quick start
 
 ### 1) Backend
 
 ```bash
-cd "D:\Django\master project\Developer-os\Backend"
+cd "D:\CPT\Don't Click me\Developer-os\Backend"
 ..\env\Scripts\python.exe manage.py migrate
 ..\env\Scripts\python.exe manage.py runserver
 ```
@@ -76,43 +111,61 @@ cd "D:\Django\master project\Developer-os\Backend"
 ### 2) Frontend
 
 ```bash
-cd "D:\Django\master project\Developer-os\Frontend"
+cd "D:\CPT\Don't Click me\Developer-os\Frontend"
 npm install
 npm run dev
 ```
 
-Then open the local Vite URL in the browser.
+Then open the local Vite URL shown in the terminal.
 
 ## Authentication
 
-The app uses JWT authentication.
-
-Default flow:
+The application uses JWT authentication with a standard access/refresh flow:
 - login via `/api/token/`
-- use access token on protected routes
+- use the access token for protected routes
 - refresh via `/api/token/refresh/`
 
-## Features
+## Current direction
 
-- project CRUD
-- dashboard overview
-- project search
-- project statistics chart
-- profile management
-- authenticated API access
-- responsive UI
+The product is currently focused on the MVP layer:
+- project dashboard
+- developer profile and metadata
+- project search and overview
+- core CRUD flows
+- clean digital interface
 
 ## Roadmap
 
-Planned next improvements:
+### Phase 1 — foundation
+- project CRUD and dashboard
+- user profiles
+- search and filtering
+- analytics summaries
+
+### Phase 2 — knowledge layer
 - resource library
-- developer workflow templates
-- tagging and categories
-- team collaboration
 - bookmarks and favorites
-- richer project analytics
-- deployment and CI setup
+- notes and references
+- tags and categories
+
+### Phase 3 — workflow layer
+- reusable developer workflow templates
+- issue and task structures
+- project status tracking
+- richer automation
+
+### Phase 4 — ecosystem layer
+- team collaboration
+- sharing and permissions
+- scalable analytics
+- personalized developer intelligence
 
 ## License
 
-This project is currently for local development and learning purposes.
+This project is currently intended for local development, experimentation, and learning.
+
+## Summary
+
+Developer OS is not just another CRUD app. It is an ecosystem for developers to manage the digital structure of their work and thinking.
+
+It is a tool for building clarity, momentum, and operational intelligence in a developer's day-to-day life.

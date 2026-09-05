@@ -332,6 +332,26 @@ export default function HomePage({
         </div>
       </section>
 
+      <section className="ecosystem-grid">
+        <article className="ecosystem-card">
+          <span className="ecosystem-badge">Project OS</span>
+          <h3>Structure your work</h3>
+          <p>Keep tools, tasks, and project context in one clear system.</p>
+        </article>
+
+        <article className="ecosystem-card accent">
+          <span className="ecosystem-badge">Knowledge Layer</span>
+          <h3>Capture ideas fast</h3>
+          <p>Save resources, notes, and reusable workflows before they fade.</p>
+        </article>
+
+        <article className="ecosystem-card">
+          <span className="ecosystem-badge">Execution Engine</span>
+          <h3>Ship with clarity</h3>
+          <p>Move from learning to delivery with fewer interruptions and better context.</p>
+        </article>
+      </section>
+
       {recommendations.length > 0 && (
         <section className="content-section">
           <div className="section-heading">

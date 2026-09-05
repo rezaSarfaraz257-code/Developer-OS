@@ -12,6 +12,7 @@ export default function DashboardPage({
   favoriteTools = [],
   toggleFavorite,
   setSelectedTool,
+  setSelectedProject,
 }) {
   const [projectsData, setProjectsData] = useState([]);
   const [editingProject, setEditingProject] = useState(null);
@@ -62,6 +63,11 @@ export default function DashboardPage({
     setProjectsData((current) =>
       current.filter((project) => project.id !== projectId),
     );
+  };
+
+  const handleOpenProject = (project) => {
+    setSelectedProject?.(project);
+    setPage("project-detail");
   };
 
   const totalProjects = projectsData.length;
@@ -238,11 +244,11 @@ export default function DashboardPage({
             <strong>{totalProjects}</strong>
           </div>
           <div className="stat-card-active">
-            <span>Active: </span>
+            <span>Active: </span><br/>
             <strong>+{activeProjects}</strong>
           </div>
           <div className="stat-card-completed">
-            <span>Completed: </span>
+            <span>Completed: </span><br/>
             <strong>{completedProjects}</strong>
           </div>
         </div>
@@ -271,6 +277,7 @@ export default function DashboardPage({
                 onEdit={setEditingProject}
                 onDelete={handleProjectDeleted}
                 updated={justUpdatedId === project.id}
+                onOpen={handleOpenProject}
               />
             ))
           )}

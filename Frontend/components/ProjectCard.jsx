@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { apiFetch } from "../src/services/api";
 
-function ProjectCard({ project, onEdit, onDelete, updated, style }) {
+function ProjectCard({ project, onEdit, onDelete, updated, style, onOpen }) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
@@ -85,6 +85,10 @@ function ProjectCard({ project, onEdit, onDelete, updated, style }) {
 
         <button className="delete-button" onClick={handleDelete} disabled={isDeleting}>
           {isDeleting ? "Deleting…" : "Delete"}
+        </button>
+
+        <button className="secondary-button" onClick={() => onOpen?.(project)}>
+          Open
         </button>
       </div>
     </div>

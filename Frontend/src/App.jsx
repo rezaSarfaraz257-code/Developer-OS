@@ -291,6 +291,31 @@ async function registerWithBackend(payload) {
 function App() {
   const [page, setPage] = useState("home");
   const [selectedTool, setSelectedTool] = useState(tools[0]);
+  const [selectedProject, setSelectedProject] = useState({
+    id: 1,
+    title: "Developer OS",
+    description: "A digital workspace for tools, workflows, knowledge, and engineering context.",
+    category: "Productivity",
+    status: "In Progress",
+    owner: "Developer",
+    updated: "Today",
+    tags: ["Frontend", "Backend", "AI"],
+  });
+  const [projectTab, setProjectTab] = useState("overview");
+  const [projectTasks, setProjectTasks] = useState([
+    { id: 1, title: "Refine workspace flow", status: "in review", description: "Improve project clarity and navigation." },
+    { id: 2, title: "Add resource library", status: "todo", description: "Prepare reusable knowledge modules." },
+    { id: 3, title: "Review AI assistant loop", status: "done", description: "Define smarter context prompts." },
+  ]);
+  const [projectNotes, setProjectNotes] = useState([
+    { id: 1, title: "System idea", tag: "Product", content: "Keep the digital workspace focused on context, momentum, and reusable patterns." },
+    { id: 2, title: "Engineering note", tag: "Architecture", content: "Frontend and backend should stay loosely coupled while sharing clear contracts." },
+  ]);
+  const [projectActivity, setProjectActivity] = useState([
+    { id: 1, actor: { username: "Ava" }, verb: "Updated roadmap and milestones", created_at: "2026-09-05T10:00:00Z" },
+    { id: 2, actor: { username: "Leo" }, verb: "Refined the dashboard experience", created_at: "2026-09-05T09:30:00Z" },
+    { id: 3, actor: { username: "System" }, verb: "Initialized the developer ecosystem workspace", created_at: "2026-09-05T08:00:00Z" },
+  ]);
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflowLibrary[0]);
   const [authMode, setAuthMode] = useState("login");
   const [favoriteTools, setFavoriteTools] = useState([]);
@@ -568,6 +593,7 @@ function App() {
           favoriteTools={favoriteTools}
           toggleFavorite={toggleFavorite}
           setSelectedTool={setSelectedTool}
+          setSelectedProject={setSelectedProject}
         />
       )}
       {page === "tool" && (
@@ -582,7 +608,15 @@ function App() {
         <ProfilePage setPage={setPage} isAuthenticated={isAuthenticated} />
       )}
       {page === "project-detail" && (
-        <ProjectDetailPage setPage={setPage} project={{}} />
+        <ProjectDetailPage
+          setPage={setPage}
+          project={selectedProject}
+          activeTab={projectTab}
+          setActiveTab={setProjectTab}
+          tasks={projectTasks}
+          notes={projectNotes}
+          activity={projectActivity}
+        />
       )}
       {page === "tasks" && <TasksPage setPage={setPage} tasks={[]} />}
       {page === "notes" && <NotesPage setPage={setPage} notes={[]} />}

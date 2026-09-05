@@ -67,48 +67,66 @@ export default function GitHubPage({ setPage }) {
   };
 
   return (
-    <main className="page-panel">
-      <div className="page-header-row">
+    <main className="page-panel" style={{ background: "rgba(10, 17, 29, 0.9)", border: "1px solid rgba(148, 163, 184, 0.2)", borderRadius: 24, padding: 24 }}>
+      <div className="page-header-row" style={{ marginBottom: 22 }}>
         <div>
-          <span className="eyebrow">GitHub</span>
-          <h2>Repository integration</h2>
+          <span className="eyebrow" style={{ color: "#67e8f9", letterSpacing: "0.14em", textTransform: "uppercase", fontSize: 11, display: "inline-block", marginBottom: 8 }}>GitHub</span>
+          <h2 style={{ margin: 0, fontSize: 30 }}>Repository integration</h2>
         </div>
         <button type="button" className="ghost-button" onClick={() => setPage("dashboard")}>Back to workspace</button>
       </div>
 
-      <div className="github-panel">
-        <div className="github-connect">
+      <section style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
+        <div style={{ background: "rgba(15, 23, 42, 0.82)", border: "1px solid rgba(148, 163, 184, 0.18)", borderRadius: 18, padding: 20 }}>
+          <div style={{ color: "#9cb0c8", letterSpacing: "0.12em", textTransform: "uppercase", fontSize: 12, marginBottom: 12 }}>Connection</div>
           {connected ? (
-            <div>
-              <strong>Connected as {account?.login}</strong>
+            <div style={{ display: "grid", gap: 16 }}>
+              <div style={{ fontWeight: 700, fontSize: 22 }}>Connected as {account?.login || "developer"}</div>
               <button type="button" className="secondary-button" onClick={loadRepos}>
                 {loadingRepos ? "Loading..." : "List repositories"}
               </button>
             </div>
           ) : (
-            <div>
-              <p>Connect your GitHub account to sync repositories and activity (read-only).</p>
+            <div style={{ display: "grid", gap: 14 }}>
+              <p style={{ margin: 0, color: "#dfeafc", lineHeight: 1.7 }}>
+                Connect your GitHub account to sync repositories, activity, and project context from your codebase.
+              </p>
               <button type="button" className="primary-button" onClick={connect}>Connect GitHub</button>
             </div>
           )}
         </div>
 
-        <div className="repo-list">
-          {repos.length === 0 ? (
-            <div className="empty-box">No repositories loaded.</div>
-          ) : (
-            repos.map((r) => (
-              <article key={r.id} className="repo-card">
-                <h3>{r.full_name}</h3>
-                <p>{r.description}</p>
-                <a href={r.html_url} target="_blank" rel="noreferrer">Open on GitHub</a>
-                <div style={{marginTop:8}}>
-                  <button type="button" className="secondary-button" onClick={() => syncRepo(r.full_name)}>Sync activity</button>
-                </div>
-              </article>
-            ))
-          )}
+        <div style={{ background: "rgba(15, 23, 42, 0.82)", border: "1px solid rgba(148, 163, 184, 0.18)", borderRadius: 18, padding: 20 }}>
+          <div style={{ color: "#9cb0c8", letterSpacing: "0.12em", textTransform: "uppercase", fontSize: 12, marginBottom: 12 }}>Repository health</div>
+          <ul style={{ margin: 0, paddingLeft: 18, color: "#dfeafc", display: "grid", gap: 10, lineHeight: 1.8 }}>
+            <li>Recent branches and pushes stay visible.</li>
+            <li>Code activity can be mirrored into the workspace.</li>
+            <li>Project and engineering context remain centralized.</li>
+          </ul>
         </div>
+      </section>
+
+      <div style={{ marginTop: 18, display: "grid", gap: 16 }}>
+        {repos.length === 0 ? (
+          <div style={{ background: "rgba(15, 23, 42, 0.8)", border: "1px dashed rgba(148, 163, 184, 0.25)", borderRadius: 18, padding: 20, color: "#dfeafc" }}>
+            No repositories loaded yet.
+          </div>
+        ) : (
+          repos.map((repo) => (
+            <article key={repo.id} style={{ background: "rgba(15, 23, 42, 0.82)", border: "1px solid rgba(148, 163, 184, 0.18)", borderRadius: 18, padding: 18, display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 20 }}>{repo.full_name}</div>
+                <div style={{ color: "#9cb0c8", marginTop: 6 }}>{repo.description || "No description available."}</div>
+              </div>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <a href={repo.html_url} target="_blank" rel="noreferrer" style={{ color: "#67e8f9", textDecoration: "none", fontWeight: 700 }}>
+                  Open
+                </a>
+                <button type="button" className="secondary-button" onClick={() => syncRepo(repo.full_name)}>Sync activity</button>
+              </div>
+            </article>
+          ))
+        )}
       </div>
     </main>
   );
