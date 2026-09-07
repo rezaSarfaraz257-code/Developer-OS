@@ -58,6 +58,81 @@
   margin: 0 auto;
 }
 
+.avatar {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.avatar-upload-control {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px;
+  border: 1px dashed rgba(103, 232, 249, 0.36);
+  border-radius: 16px;
+  background: rgba(7, 16, 31, 0.55);
+}
+
+.profile-avatar-preview {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.avatar-upload-copy {
+  display: grid;
+  gap: 7px;
+  text-align: left;
+}
+
+.avatar-upload-copy strong {
+  color: #effaff;
+}
+
+.avatar-upload-copy p {
+  margin: 0;
+  color: #9cb0c8;
+  font-size: 0.84rem;
+}
+
+.avatar-upload-button,
+.avatar-remove-button {
+  width: fit-content;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.avatar-upload-button {
+  color: #eaffff;
+  border: 1px solid rgba(103, 232, 249, 0.45);
+  background: rgba(103, 232, 249, 0.12);
+}
+
+.avatar-upload-button input {
+  display: none;
+}
+
+.avatar-remove-button {
+  border: 0;
+  padding-left: 0;
+  color: #ffb4d9;
+  background: transparent;
+}
+
+.avatar-upload-error {
+  color: #ffadc9 !important;
+}
+
 .profile-card-panel h3 {
   margin: 0;
   font-size: 1.7rem;
@@ -167,5 +242,10 @@
 @media (max-width: 620px) {
   .stats-grid.compact-grid {
     grid-template-columns: 1fr;
+  }
+
+  .avatar-upload-control {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }

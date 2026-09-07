@@ -1,8 +1,19 @@
+from uuid import uuid4
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils.text import slugify
 
 from .fields import EncryptedTextField
+
+def profile_avatar_upload_to(instance, _filename):
+    """Store avatars under an opaque, user-scoped name.
+
+    The API re-encodes every accepted avatar as WebP before saving it, so the
+    generated extension is deliberate rather than supplied by the client.
+    """
+    return f"avatars/user_{instance.user_id}/{uuid4().hex}.webp"
+
 
 # Create your models here.
 
@@ -53,6 +64,7 @@ class Project(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     full_name = models.CharField(max_length=200, blank=True, default="")
+    avatar = models.ImageField(upload_to=profile_avatar_upload_to, blank=True)
     avatar_url = models.URLField(blank=True, default="")
     bio = models.TextField(blank=True, default="")
     github = models.URLField(blank=True, default="")

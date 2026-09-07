@@ -312,14 +312,41 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     Boolean(getAccessToken()),
   );
+  const [accountProfile, setAccountProfile] = useState(null);
   const [authError, setAuthError] = useState(null);
 
   const handleLogout = () => {
     revokeRefreshToken();
     clearAuth();
+    setAccountProfile(null);
     setIsAuthenticated(false);
     setPage("auth");
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setAccountProfile(null);
+      return undefined;
+    }
+
+    let isCurrent = true;
+    const loadAccountProfile = async () => {
+      try {
+        const response = await apiFetch("/profile/");
+        const data = await response.json();
+        if (isCurrent) {
+          setAccountProfile(data);
+        }
+      } catch (error) {
+        console.error("Failed to load account profile:", error);
+      }
+    };
+
+    loadAccountProfile();
+    return () => {
+      isCurrent = false;
+    };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     try {
@@ -405,6 +432,7 @@ function App() {
     const handler = (e) => {
       const msg = e?.detail?.message || "Authentication required";
       setAuthError(msg);
+      setAccountProfile(null);
       setIsAuthenticated(false);
       setPage("auth");
     };
@@ -496,6 +524,7 @@ function App() {
         setPage={setPage}
         isAuthenticated={isAuthenticated}
         handleLogout={handleLogout}
+        profile={accountProfile}
       />
 
       {page === "home" && (
@@ -586,7 +615,11 @@ function App() {
         />
       )}
       {page === "profile" && (
-        <ProfilePage setPage={setPage} isAuthenticated={isAuthenticated} />
+        <ProfilePage
+          setPage={setPage}
+          isAuthenticated={isAuthenticated}
+          onProfileUpdate={setAccountProfile}
+        />
       )}
       {page === "project-detail" && (
         <ProjectDetailPage

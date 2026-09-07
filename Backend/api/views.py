@@ -9,7 +9,8 @@ from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.conf import settings
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, parser_classes, permission_classes
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework_simplejwt.exceptions import TokenError
@@ -187,6 +188,7 @@ def logout_api(request):
 
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
+@parser_classes([JSONParser, FormParser, MultiPartParser])
 def profile_api(request):
     user = request.user
     profile, _ = UserProfile.objects.get_or_create(user=user)
@@ -202,7 +204,12 @@ def profile_api(request):
             "last_name": user.last_name,
             "email": user.email,
             "full_name": full_name,
-            "avatar_url": profile.avatar_url,
+            "avatar_url": (
+                request.build_absolute_uri(profile.avatar.url)
+                if profile.avatar
+                else profile.avatar_url
+            ),
+            "has_uploaded_avatar": bool(profile.avatar),
             "bio": profile.bio,
             "github": profile.github,
             "linkedin": profile.linkedin,
@@ -215,7 +222,9 @@ def profile_api(request):
 
     serializer = ProfileUpdateSerializer(data=request.data, partial=True)
     serializer.is_valid(raise_exception=True)
-    payload = serializer.validated_data
+    payload = serializer.validated_data.copy()
+    uploaded_avatar = payload.pop("avatar", None)
+    remove_avatar = payload.pop("remove_avatar", False)
 
     if "email" in payload and payload["email"] and User.objects.exclude(pk=user.pk).filter(
         email__iexact=payload["email"]
@@ -233,8 +242,26 @@ def profile_api(request):
     changed_profile_fields = [field for field in profile_fields if field in payload]
     for field in changed_profile_fields:
         setattr(profile, field, payload[field])
+
+    old_avatar_name = profile.avatar.name if profile.avatar else ""
+    old_avatar_storage = profile.avatar.storage if profile.avatar else None
+    if uploaded_avatar:
+        profile.avatar = uploaded_avatar
+        changed_profile_fields.append("avatar")
+    elif remove_avatar and old_avatar_name:
+        profile.avatar = ""
+        changed_profile_fields.append("avatar")
+
     if changed_profile_fields:
         profile.save(update_fields=[*changed_profile_fields, "updated_at"])
+
+    if old_avatar_name and old_avatar_name != profile.avatar.name and old_avatar_storage:
+        try:
+            old_avatar_storage.delete(old_avatar_name)
+        except OSError:
+            # The profile update is already committed; a stale media object is
+            # harmless and should not turn a successful update into an error.
+            pass
 
     return profile_response()
 

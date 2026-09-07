@@ -1,7 +1,12 @@
+from io import BytesIO
+import tempfile
+
 from django.contrib.auth.models import User
 from django.db import connection
 from django.test import override_settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from cryptography.fernet import Fernet
+from PIL import Image
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework_simplejwt.exceptions import TokenError
@@ -89,6 +94,27 @@ class ProjectApiSecurityTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("website", response.data)
+
+    def test_profile_avatar_is_reencoded_and_returned_as_a_media_url(self):
+        image_buffer = BytesIO()
+        Image.new("RGBA", (40, 30), "#2ad9ff").save(image_buffer, format="PNG")
+        avatar = SimpleUploadedFile("portrait.png", image_buffer.getvalue(), content_type="image/png")
+        media_directory = tempfile.TemporaryDirectory()
+        self.addCleanup(media_directory.cleanup)
+
+        self.authenticate(self.owner)
+        with override_settings(MEDIA_ROOT=media_directory.name):
+            response = self.client.patch("/api/profile/", {"avatar": avatar}, format="multipart")
+
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.assertTrue(response.data["has_uploaded_avatar"])
+            self.assertIn("/media/avatars/user_", response.data["avatar_url"])
+
+            self.owner.profile.refresh_from_db()
+            self.assertTrue(self.owner.profile.avatar.name.endswith(".webp"))
+            with self.owner.profile.avatar.open("rb") as stored_file:
+                with Image.open(stored_file) as stored_image:
+                    self.assertEqual(stored_image.format, "WEBP")
 
 
 class GitHubTokenEncryptionTests(APITestCase):

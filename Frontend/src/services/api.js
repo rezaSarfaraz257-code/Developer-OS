@@ -81,11 +81,23 @@ export async function refreshAccessToken() {
 
 export async function apiFetch(endpoint, options = {}) {
   const token = getAccessToken();
+  const isFormData =
+    typeof FormData !== "undefined" && options.body instanceof FormData;
 
   const headers = {
-    "Content-Type": "application/json",
+    ...(!isFormData ? { "Content-Type": "application/json" } : {}),
     ...(options.headers || {}),
   };
+
+  // The browser must set the multipart boundary itself. Sending a generic
+  // Content-Type header would make otherwise valid image uploads unreadable.
+  if (isFormData) {
+    Object.keys(headers).forEach((key) => {
+      if (key.toLowerCase() === "content-type") {
+        delete headers[key];
+      }
+    });
+  }
 
   if (token) {
     headers.Authorization = `Bearer ${token}`;

@@ -143,6 +143,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Production security controls.  They remain disabled only for the local HTTP
 # development server, where forcing HTTPS would make the project unusable.
@@ -191,8 +193,9 @@ REST_FRAMEWORK = {
     },
 }
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 2_621_440  # 2.5 MiB JSON API request ceiling.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5_242_880  # 5 MiB API request ceiling.
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 100
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2_621_440  # Larger uploads stream to a temp file.
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),

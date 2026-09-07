@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { apiFetch, clearAuth } from "../../services/api";
+import Avatar from "../../components/Avatar";
 import "./Profile.css";
 
-export default function ProfilePage({ setPage, isAuthenticated }) {
+const maxAvatarBytes = 5 * 1024 * 1024;
+const acceptedAvatarTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+
+export default function ProfilePage({ setPage, isAuthenticated, onProfileUpdate }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [removeAvatar, setRemoveAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
   const [form, setForm] = useState({
     first_name: "",
     last_name: "",
@@ -31,6 +39,7 @@ export default function ProfilePage({ setPage, isAuthenticated }) {
         const response = await apiFetch("/profile/");
         const data = await response.json();
         setProfile(data);
+        onProfileUpdate(data);
         setForm({
           first_name: data.first_name || "",
           last_name: data.last_name || "",
@@ -51,11 +60,50 @@ export default function ProfilePage({ setPage, isAuthenticated }) {
     };
 
     loadProfile();
-  }, [isAuthenticated, setPage]);
+  }, [isAuthenticated, onProfileUpdate, setPage]);
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(removeAvatar ? "" : profile?.avatar_url || "");
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(avatarFile);
+    setAvatarPreview(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [avatarFile, profile?.avatar_url, removeAvatar]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleAvatarChange = (event) => {
+    const file = event.target.files?.[0];
+    setAvatarError("");
+
+    if (!file) {
+      return;
+    }
+    if (!acceptedAvatarTypes.has(file.type)) {
+      setAvatarError("Please choose a JPEG, PNG, or WebP image.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > maxAvatarBytes) {
+      setAvatarError("Your profile photo must be 5 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+
+    setAvatarFile(file);
+    setRemoveAvatar(false);
+  };
+
+  const resetAvatarSelection = () => {
+    setAvatarFile(null);
+    setRemoveAvatar(Boolean(profile?.avatar_url));
+    setAvatarError("");
   };
 
   const handleSaveProfile = async () => {
@@ -73,16 +121,26 @@ export default function ProfilePage({ setPage, isAuthenticated }) {
         website: form.website,
       };
 
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, value]) => formData.append(key, value));
+      if (avatarFile) {
+        formData.append("avatar", avatarFile);
+      }
+      if (removeAvatar) {
+        formData.append("remove_avatar", "true");
+      }
+
       const response = await apiFetch("/profile/", {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+        body: formData,
       });
 
       const data = await response.json();
       setProfile(data);
+      onProfileUpdate(data);
+      setAvatarFile(null);
+      setRemoveAvatar(false);
+      setAvatarError("");
       setIsEditing(false);
     } catch (error) {
       console.error(error);
@@ -148,7 +206,12 @@ export default function ProfilePage({ setPage, isAuthenticated }) {
 
       <div className="profile-layout">
         <section className="profile-card-panel">
-          <div className="profile-avatar">{initials}</div>
+          <Avatar
+            className="profile-avatar"
+            imageUrl={profile?.avatar_url}
+            initials={initials}
+            label={`${profileName} profile photo`}
+          />
           <h3>{profileName}</h3>
           <p>
             {profile?.bio ||
@@ -167,6 +230,37 @@ export default function ProfilePage({ setPage, isAuthenticated }) {
             <div className="loading-box">Loading profile...</div>
           ) : isEditing ? (
             <div className="profile-editor">
+              <div className="avatar-upload-control">
+                <Avatar
+                  className="profile-avatar profile-avatar-preview"
+                  imageUrl={avatarPreview}
+                  initials={initials}
+                  label="Profile photo preview"
+                />
+                <div className="avatar-upload-copy">
+                  <span className="eyebrow">Identity image</span>
+                  <strong>Profile photo</strong>
+                  <p>JPEG, PNG, or WebP · maximum 5 MB</p>
+                  <label className="avatar-upload-button">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={handleAvatarChange}
+                    />
+                    Choose photo
+                  </label>
+                  {(avatarFile || profile?.avatar_url) && (
+                    <button
+                      type="button"
+                      className="avatar-remove-button"
+                      onClick={resetAvatarSelection}
+                    >
+                      Remove photo
+                    </button>
+                  )}
+                  {avatarError && <p className="avatar-upload-error">{avatarError}</p>}
+                </div>
+              </div>
               <label>
                 Full name
                 <input

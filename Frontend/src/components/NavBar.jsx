@@ -1,11 +1,16 @@
 import { useState } from "react";
 import devlogo from "../assets/devlogo.png";
+import Avatar from "./Avatar";
 import "./Navbar.css";
 
-export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
+export default function NavBar({ setPage, isAuthenticated, handleLogout, profile }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const profileName = "Developer";
+  const profileName =
+    profile?.full_name ||
+    [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
+    profile?.username ||
+    "Developer";
   const initials =
     profileName
       .split(" ")
@@ -72,7 +77,12 @@ export default function NavBar({ setPage, isAuthenticated, handleLogout }) {
           aria-expanded={isMenuOpen}
           onClick={() => setIsMenuOpen((open) => !open)}
         >
-          {initials}
+          <Avatar
+            className="nav-avatar"
+            imageUrl={profile?.avatar_url}
+            initials={initials}
+            label={`${profileName} account menu`}
+          />
         </button>
 
         <div className={`dropdown-content ${isMenuOpen ? "open" : ""}`}>
