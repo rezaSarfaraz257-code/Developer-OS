@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import "./App.css";
-import { API_URL, apiFetch, clearAuth, getAccessToken, revokeRefreshToken } from "./services/api";
+import {
+  API_URL,
+  apiFetch,
+  clearAuth,
+  getAccessToken,
+  revokeRefreshToken,
+} from "./services/api";
 import HomePage from "./Pages/Home/HomePages";
 import NavBar from "./components/NavBar";
 import ExplorePage from "./Pages/Explore/Explore";
@@ -24,6 +30,7 @@ import ProductionPage from "./Project/Production/Production";
 import OverviewPage from "./Project/Overview/Overview";
 import SnippetsPage from "./Project/Snippets/Snippets";
 import GitHubPage from "./Project/GitHub/GitHub";
+import CyberOcean from "./components/CyberMode";
 
 /* Legacy category presets retained for future catalog filtering.
 const categories = [
@@ -274,13 +281,16 @@ async function registerWithBackend(payload) {
   return response.json();
 }
 
+
+
 function App() {
   const [page, setPage] = useState("home");
   const [selectedTool, setSelectedTool] = useState(tools[0]);
   const [selectedProject, setSelectedProject] = useState({
     id: 1,
     title: "Developer OS",
-    description: "A digital workspace for tools, workflows, knowledge, and engineering context.",
+    description:
+      "A digital workspace for tools, workflows, knowledge, and engineering context.",
     category: "Productivity",
     status: "In Progress",
     owner: "Developer",
@@ -289,18 +299,60 @@ function App() {
   });
   const [projectTab, setProjectTab] = useState("overview");
   const [projectTasks] = useState([
-    { id: 1, title: "Refine workspace flow", status: "in review", description: "Improve project clarity and navigation." },
-    { id: 2, title: "Add resource library", status: "todo", description: "Prepare reusable knowledge modules." },
-    { id: 3, title: "Review AI assistant loop", status: "done", description: "Define smarter context prompts." },
+    {
+      id: 1,
+      title: "Refine workspace flow",
+      status: "in review",
+      description: "Improve project clarity and navigation.",
+    },
+    {
+      id: 2,
+      title: "Add resource library",
+      status: "todo",
+      description: "Prepare reusable knowledge modules.",
+    },
+    {
+      id: 3,
+      title: "Review AI assistant loop",
+      status: "done",
+      description: "Define smarter context prompts.",
+    },
   ]);
   const [projectNotes] = useState([
-    { id: 1, title: "System idea", tag: "Product", content: "Keep the digital workspace focused on context, momentum, and reusable patterns." },
-    { id: 2, title: "Engineering note", tag: "Architecture", content: "Frontend and backend should stay loosely coupled while sharing clear contracts." },
+    {
+      id: 1,
+      title: "System idea",
+      tag: "Product",
+      content:
+        "Keep the digital workspace focused on context, momentum, and reusable patterns.",
+    },
+    {
+      id: 2,
+      title: "Engineering note",
+      tag: "Architecture",
+      content:
+        "Frontend and backend should stay loosely coupled while sharing clear contracts.",
+    },
   ]);
   const [projectActivity] = useState([
-    { id: 1, actor: { username: "Ava" }, verb: "Updated roadmap and milestones", created_at: "2026-09-05T10:00:00Z" },
-    { id: 2, actor: { username: "Leo" }, verb: "Refined the dashboard experience", created_at: "2026-09-05T09:30:00Z" },
-    { id: 3, actor: { username: "System" }, verb: "Initialized the developer ecosystem workspace", created_at: "2026-09-05T08:00:00Z" },
+    {
+      id: 1,
+      actor: { username: "Ava" },
+      verb: "Updated roadmap and milestones",
+      created_at: "2026-09-05T10:00:00Z",
+    },
+    {
+      id: 2,
+      actor: { username: "Leo" },
+      verb: "Refined the dashboard experience",
+      created_at: "2026-09-05T09:30:00Z",
+    },
+    {
+      id: 3,
+      actor: { username: "System" },
+      verb: "Initialized the developer ecosystem workspace",
+      created_at: "2026-09-05T08:00:00Z",
+    },
   ]);
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflowLibrary[0]);
   const [authMode, setAuthMode] = useState("login");
@@ -519,6 +571,8 @@ function App() {
   };
 
   return (
+    <>
+      <CyberOcean />
     <div className="developeros-page">
       <NavBar
         setPage={setPage}
@@ -634,9 +688,13 @@ function App() {
       )}
       {page === "tasks" && <TasksPage setPage={setPage} tasks={[]} />}
       {page === "notes" && <NotesPage setPage={setPage} notes={[]} />}
-      {page === "activity" && <ActivityPage setPage={setPage} activities={[]} />}
+      {page === "activity" && (
+        <ActivityPage setPage={setPage} activities={[]} />
+      )}
       {page === "tags" && <TagsPage setPage={setPage} tags={[]} />}
-      {page === "bookmarks" && <BookmarksPage setPage={setPage} bookmarks={favoriteTools} />}
+      {page === "bookmarks" && (
+        <BookmarksPage setPage={setPage} bookmarks={favoriteTools} />
+      )}
       {page === "advanced" && <AdvancedDashboardPage setPage={setPage} />}
       {page === "ai" && <AIAssistantPage setPage={setPage} />}
       {page === "collaboration" && <CollaborationPage setPage={setPage} />}
@@ -650,6 +708,7 @@ function App() {
 
       <Footer />
     </div>
+    </>
   );
 }
 

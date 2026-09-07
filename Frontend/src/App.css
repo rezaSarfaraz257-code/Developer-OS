@@ -814,7 +814,6 @@ img {
     grid-template-columns: 1fr;
   }
 
-
   .full-resource-grid {
     grid-template-columns: 1fr;
   }
@@ -914,4 +913,188 @@ img {
   gap: 10px;
   justify-content: flex-end;
   margin-top: 8px;
+}
+
+/* =========================================================
+   DEVELOPER OS — CYBER DATA TUNNEL
+   Background only
+   ========================================================= */
+
+html,
+body {
+  background: #01030a !important;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.cyber-ocean {
+  position: fixed !important;
+  inset: 0 !important;
+
+  width: 100vw !important;
+  height: 100vh !important;
+
+  display: block;
+
+  pointer-events: none !important;
+
+  z-index: 0 !important;
+
+  margin: 0;
+  padding: 0;
+
+  border: 0;
+  outline: 0;
+
+  background: #01030a !important;
+}
+
+/* Put the entire application above the 3D background */
+
+#root {
+  position: relative;
+  z-index: 1;
+
+  min-height: 100vh;
+
+  background: transparent !important;
+}
+
+.developeros-page {
+  position: relative;
+  z-index: 2;
+
+  background: transparent !important;
+}
+
+/* Keep every real UI surface above the background */
+
+.topbar,
+.page-panel,
+.auth-page,
+.dashboard-page,
+.tool-detail-page,
+.profile-page,
+.sidebar-panel,
+.sidebar-card,
+.detail-card,
+.project-card,
+.project-form-panel,
+.workflow-library-card,
+.feature-card,
+.loading-box,
+.empty-box,
+.auth-required-box,
+.mini-panel,
+.quick-create-modal {
+  position: relative;
+  z-index: 2;
+}
+
+/* =========================================================
+   DEVELOPER OS — DIGITAL UNIVERSE BACKGROUND
+   Background ONLY
+   ========================================================= */
+
+html,
+body {
+  background: #01040b !important;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.cyber-ocean {
+  position: fixed !important;
+  inset: 0 !important;
+
+  width: 100vw !important;
+  height: 100vh !important;
+
+  display: block !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+  outline: 0 !important;
+
+  pointer-events: none !important;
+
+  z-index: 0 !important;
+
+  opacity: 1 !important;
+
+  background: transparent !important;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+
+  min-height: 100vh;
+
+  background: transparent !important;
+}
+
+.developeros-page {
+  position: relative;
+  z-index: 2;
+
+  min-height: 100vh;
+
+  background: transparent !important;
+}
+
+.topbar,
+.page-panel,
+.auth-page,
+.dashboard-page,
+.tool-detail-page,
+.profile-page,
+.sidebar-panel,
+.sidebar-card,
+.detail-card,
+.project-card,
+.project-form-panel,
+.workflow-library-card,
+.feature-card,
+.loading-box,
+.empty-box,
+.auth-required-box,
+.mini-panel,
+.quick-create-modal {
+  position: relative;
+  z-index: 2;
+}
+.cyber-ocean {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: block !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  background: transparent !important;
+}
+
+.developeros-page {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  background: transparent !important;
 }
