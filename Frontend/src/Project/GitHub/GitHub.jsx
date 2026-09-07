@@ -18,7 +18,7 @@ export default function GitHubPage({ setPage }) {
         } else {
           setConnected(false);
         }
-      } catch (e) {
+      } catch {
         setConnected(false);
       }
     };
@@ -28,12 +28,12 @@ export default function GitHubPage({ setPage }) {
 
   const connect = async () => {
     try {
-      const resp = await apiFetch("/github/authorize/", { method: "POST" });
+      const resp = await apiFetch("/github/authorize/");
       const payload = await resp.json();
-      if (payload.url) {
-        // open auth URL in new window
-        window.open(payload.url, "_blank", "noopener,noreferrer");
-        alert("GitHub auth opened in a new tab. Complete authorization and return to this app.");
+      if (payload.authorization_url) {
+        window.location.assign(payload.authorization_url);
+      } else {
+        throw new Error("GitHub authorization URL was not returned.");
       }
     } catch (err) {
       alert("Failed to start GitHub auth: " + err.message);
@@ -45,7 +45,7 @@ export default function GitHubPage({ setPage }) {
     try {
       const resp = await apiFetch("/github/repos/");
       const data = await resp.json();
-      setRepos(Array.isArray(data) ? data : []);
+      setRepos(Array.isArray(data.repositories) ? data.repositories : []);
     } catch (err) {
       alert("Failed to load repos: " + err.message);
     } finally {

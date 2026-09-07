@@ -22,3 +22,8 @@ dist/
 # os
 Thumbs.db
 .DS_Store
+
+
+*.pyc
+media/
+staticfiles/

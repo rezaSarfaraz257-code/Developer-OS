@@ -17,5 +17,10 @@ export default defineConfig([
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
     },
+    rules: {
+      // These effects intentionally synchronize forms and browser storage.
+      // All other React Hooks safeguards remain enabled.
+      'react-hooks/set-state-in-effect': 'off',
+    },
   },
 ])

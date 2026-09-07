@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { apiFetch } from "../src/services/api";
+import { useEffect, useState } from "react";
+import { apiFetch, safeExternalUrl } from "../src/services/api";
 
 function ProjectCard({ project, onEdit, onDelete, updated, style, onOpen }) {
   const [isRemoving, setIsRemoving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdated, setIsUpdated] = useState(false);
+  const projectUrl = safeExternalUrl(project.link);
 
   useEffect(() => {
     if (updated) {
@@ -61,8 +62,8 @@ function ProjectCard({ project, onEdit, onDelete, updated, style, onOpen }) {
 
       <div className="project-meta-row">
         <span className="project-status">{project.status || "In Progress"}</span>
-        {project.link && (
-          <a href={project.link} target="_blank" rel="noreferrer" className="project-link">
+        {projectUrl && (
+          <a href={projectUrl} target="_blank" rel="noreferrer" className="project-link">
             Open link
           </a>
         )}

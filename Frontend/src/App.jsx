@@ -1,15 +1,6 @@
 import { useEffect, useState } from "react";
-import ProjectCard from "../components/ProjectCard";
-import ProjectForm from "../components/ProjectForm";
-import SearchBar from "../components/SearchBar";
-import ProjectsChart from "../components/ProjectsChart";
-import Profile from "../components/Profile";
 import "./App.css";
-import { apiFetch, clearAuth } from "./services/api";
-import Login from "../components/Login";
-import ToolsSection from "../components/ToolsSection";
-import ResourceSection from "../components/ResourceSection";
-import { Colors } from "chart.js";
+import { API_URL, apiFetch, clearAuth, getAccessToken, revokeRefreshToken } from "./services/api";
 import HomePage from "./Pages/Home/HomePages";
 import NavBar from "./components/NavBar";
 import ExplorePage from "./Pages/Explore/Explore";
@@ -34,6 +25,7 @@ import OverviewPage from "./Project/Overview/Overview";
 import SnippetsPage from "./Project/Snippets/Snippets";
 import GitHubPage from "./Project/GitHub/GitHub";
 
+/* Legacy category presets retained for future catalog filtering.
 const categories = [
   "Frontend",
   "Backend",
@@ -43,15 +35,7 @@ const categories = [
   "Testing",
   "Data",
   "Security",
-];
-
-const filterCategories = ["All", ...categories];
-
-const stats = [
-  { label: "Tools", value: "250+" },
-  { label: "Workflows", value: "80+" },
-  { label: "Resources", value: "120+" },
-];
+]; */
 
 const tools = [
   {
@@ -116,6 +100,7 @@ const tools = [
   },
 ];
 
+/* Legacy landing-page samples retained for a future seed command.
 const workflows = [
   {
     title: "Full-stack delivery",
@@ -159,6 +144,7 @@ const resources = [
       "Reusable setups for team rituals, issue flow, and development planning.",
   },
 ];
+*/
 
 const recommendations = [
   "React + Django stack",
@@ -167,6 +153,7 @@ const recommendations = [
   "Architecture reviews",
 ];
 
+/* Legacy dashboard samples retained for a future seed command.
 const projects = [
   { name: "Frontend refactor", status: "In progress", progress: 72 },
   { name: "API performance boost", status: "Ready for review", progress: 88 },
@@ -179,8 +166,7 @@ const profileStats = [
   { label: "Resources", value: "27" },
 ];
 
-const API_URL = "http://127.0.0.1:8000/api";
-
+*/
 const resourceLibrary = [
   {
     id: 1,
@@ -268,8 +254,8 @@ async function loginWithBackend(username, password) {
   }
 
   const data = await response.json();
-  localStorage.setItem("access", data.access);
-  localStorage.setItem("refresh", data.refresh);
+  sessionStorage.setItem("access", data.access);
+  sessionStorage.setItem("refresh", data.refresh);
   return data;
 }
 
@@ -302,16 +288,16 @@ function App() {
     tags: ["Frontend", "Backend", "AI"],
   });
   const [projectTab, setProjectTab] = useState("overview");
-  const [projectTasks, setProjectTasks] = useState([
+  const [projectTasks] = useState([
     { id: 1, title: "Refine workspace flow", status: "in review", description: "Improve project clarity and navigation." },
     { id: 2, title: "Add resource library", status: "todo", description: "Prepare reusable knowledge modules." },
     { id: 3, title: "Review AI assistant loop", status: "done", description: "Define smarter context prompts." },
   ]);
-  const [projectNotes, setProjectNotes] = useState([
+  const [projectNotes] = useState([
     { id: 1, title: "System idea", tag: "Product", content: "Keep the digital workspace focused on context, momentum, and reusable patterns." },
     { id: 2, title: "Engineering note", tag: "Architecture", content: "Frontend and backend should stay loosely coupled while sharing clear contracts." },
   ]);
-  const [projectActivity, setProjectActivity] = useState([
+  const [projectActivity] = useState([
     { id: 1, actor: { username: "Ava" }, verb: "Updated roadmap and milestones", created_at: "2026-09-05T10:00:00Z" },
     { id: 2, actor: { username: "Leo" }, verb: "Refined the dashboard experience", created_at: "2026-09-05T09:30:00Z" },
     { id: 3, actor: { username: "System" }, verb: "Initialized the developer ecosystem workspace", created_at: "2026-09-05T08:00:00Z" },
@@ -324,11 +310,12 @@ function App() {
   const [resourceData, setResourceData] = useState(resourceLibrary);
   const [workflowData, setWorkflowData] = useState(workflowLibrary);
   const [isAuthenticated, setIsAuthenticated] = useState(
-    Boolean(localStorage.getItem("access")),
+    Boolean(getAccessToken()),
   );
   const [authError, setAuthError] = useState(null);
 
   const handleLogout = () => {
+    revokeRefreshToken();
     clearAuth();
     setIsAuthenticated(false);
     setPage("auth");
@@ -413,10 +400,6 @@ function App() {
   useEffect(() => {
     localStorage.setItem("favoriteTools", JSON.stringify(favoriteTools));
   }, [favoriteTools]);
-
-  useEffect(() => {
-    setIsAuthenticated(Boolean(localStorage.getItem("access")));
-  }, [page]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -506,8 +489,6 @@ function App() {
     setIsAuthenticated(true);
     setPage("dashboard");
   };
-
-  const src = "./assets/devlogo.png";
 
   return (
     <div className="developeros-page">
@@ -749,7 +730,5 @@ function ToolDetailPage({ tool, setPage, toggleFavorite, favoriteTools }) {
     </main>
   );
 }
-
-const fallbackTools = tools;
 
 export default App;

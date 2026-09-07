@@ -1,12 +1,52 @@
-const API_URL = "http://127.0.0.1:8000/api";
+export const API_URL = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api").replace(/\/$/, "");
+
+export function safeExternalUrl(value) {
+  try {
+    const url = new URL(value);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : null;
+  } catch {
+    return null;
+  }
+}
+
+function authStorage() {
+  return window.sessionStorage;
+}
+
+export function getAccessToken() {
+  return authStorage().getItem("access");
+}
 
 export function clearAuth() {
+  authStorage().removeItem("access");
+  authStorage().removeItem("refresh");
+  // Clear tokens issued by earlier releases that persisted in localStorage.
   localStorage.removeItem("access");
   localStorage.removeItem("refresh");
 }
 
+export function revokeRefreshToken() {
+  const refresh = authStorage().getItem("refresh");
+  const access = getAccessToken();
+
+  if (!refresh || !access) {
+    return;
+  }
+
+  // Logout must not block navigation, but it revokes the server-side refresh
+  // token whenever the API is reachable.
+  void fetch(`${API_URL}/logout/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${access}`,
+    },
+    body: JSON.stringify({ refresh }),
+  }).catch(() => {});
+}
+
 export async function refreshAccessToken() {
-  const refresh = localStorage.getItem("refresh");
+  const refresh = authStorage().getItem("refresh");
 
   if (!refresh) {
     return null;
@@ -32,12 +72,15 @@ export async function refreshAccessToken() {
     return null;
   }
 
-  localStorage.setItem("access", data.access);
+  authStorage().setItem("access", data.access);
+  if (data.refresh) {
+    authStorage().setItem("refresh", data.refresh);
+  }
   return data.access;
 }
 
 export async function apiFetch(endpoint, options = {}) {
-  const token = localStorage.getItem("access");
+  const token = getAccessToken();
 
   const headers = {
     "Content-Type": "application/json",
@@ -53,7 +96,7 @@ export async function apiFetch(endpoint, options = {}) {
     headers,
   });
 
-  if (response.status === 401 && localStorage.getItem("refresh")) {
+  if (response.status === 401 && authStorage().getItem("refresh")) {
     const refreshedToken = await refreshAccessToken();
 
     if (refreshedToken) {
@@ -70,7 +113,7 @@ export async function apiFetch(endpoint, options = {}) {
     let errorPayload = null;
     try {
       errorPayload = await response.json();
-    } catch (e) {
+    } catch {
       // ignore json parse errors
     }
 
@@ -83,7 +126,7 @@ export async function apiFetch(endpoint, options = {}) {
       try {
         const msg = (errorPayload && (errorPayload.detail || errorPayload.error || errorPayload.message)) || "Authentication required";
         window.dispatchEvent(new CustomEvent("auth:expired", { detail: { message: msg } }));
-      } catch (e) {
+      } catch {
         // ignore in non-browser environments
       }
 

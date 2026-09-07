@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import "./Auth.css";
 
 export default function AuthPage({
   authMode,
   setAuthMode,
-  setPage,
   onAuthSuccess,
   loginWithBackend,
   registerWithBackend,
@@ -18,12 +17,6 @@ export default function AuthPage({
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (initialError) {
-      setError(initialError);
-    }
-  }, [initialError]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -164,7 +157,7 @@ export default function AuthPage({
               />
             </label>
 
-            {error && <div className="auth-error">{error}</div>}
+            {(error || initialError) && <div className="auth-error">{error || initialError}</div>}
 
             <button
               type="submit"

@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Very small SVG bar chart to visualize basic stats
 function SimpleStatsChart({ stats = {} }) {

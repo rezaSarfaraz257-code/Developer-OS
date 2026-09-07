@@ -1,9 +1,18 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.text import slugify
+
+from .fields import EncryptedTextField
 
 # Create your models here.
 
-class project(models.Model):
+class Project(models.Model):
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="projects"
+    )
+
     CATEGORY_CHOICES = [
         ("Frontend", "Frontend"),
         ("Backend", "Backend"),
@@ -21,18 +30,25 @@ class project(models.Model):
         ("On Hold", "On Hold"),
     ]
 
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, default="General")
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, default="")
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        default="General"
+    )
     tags = models.JSONField(default=list, blank=True)
     link = models.URLField(blank=True, default="")
-    status = models.CharField(max_length=40, choices=STATUS_CHOICES, default="In Progress")
+    status = models.CharField(
+        max_length=40,
+        choices=STATUS_CHOICES,
+        default="In Progress",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-    
+    uploaded_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.title
-
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
@@ -49,7 +65,6 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} profile"
 
-
 class Resource(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, default="")
@@ -61,7 +76,6 @@ class Resource(models.Model):
     def __str__(self):
         return self.title
 
-
 class Workflow(models.Model):
     title = models.CharField(max_length=200)
     level = models.CharField(max_length=50, default="Beginner")
@@ -72,21 +86,6 @@ class Workflow(models.Model):
 
     def __str__(self):
         return self.title
-
-
-class Favorite(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favorites")
-    tool_name = models.CharField(max_length=100)
-    tag = models.CharField(max_length=50, blank=True, default="")
-    description = models.TextField(blank=True, default="")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("user", "tool_name")
-
-    def __str__(self):
-        return f"{self.user.username}: {self.tool_name}"
-
 
 class Tool(models.Model):
     CATEGORY_CHOICES = [
@@ -111,6 +110,31 @@ class Tool(models.Model):
     def __str__(self):
         return self.name
 
+class Favorite(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="favorites"
+    )
+
+    tool = models.ForeignKey(
+        Tool,
+        on_delete=models.CASCADE,
+        related_name="favorited_by",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "tool"],
+                name="unique_user_tool_favorite"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user.username}: {self.tool.name}"
 
 class Tag(models.Model):
     name = models.CharField(max_length=80, unique=True)
@@ -119,35 +143,87 @@ class Tag(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name)[:90] or "tag"
+            candidate = base_slug
+            suffix = 2
+            while type(self).objects.exclude(pk=self.pk).filter(slug=candidate).exists():
+                candidate = f"{base_slug[:95 - len(str(suffix))]}-{suffix}"
+                suffix += 1
+            self.slug = candidate
+        super().save(*args, **kwargs)
 
 class Task(models.Model):
-    STATUS = [("todo", "To Do"), ("in_progress", "In Progress"), ("done", "Done"), ("blocked", "Blocked")]
+    STATUS = [
+        ("todo", "To Do"),
+        ("in_progress", "In Progress"),
+        ("done", "Done"),
+        ("blocked", "Blocked"),
+    ]
 
-    title = models.CharField(max_length=200)
-    description = models.TextField(blank=True, default="")
-    status = models.CharField(max_length=32, choices=STATUS, default="todo")
-    assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="tasks")
-    project = models.ForeignKey(project, on_delete=models.CASCADE, null=True, blank=True, related_name="tasks")
-    due_date = models.DateField(null=True, blank=True)
-    tags = models.JSONField(default=list, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="tasks",
+        null=True,
+        blank=True,
+    )
+
+    assignee = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="assigned_tasks",
+    )
+
+    status = models.CharField(
+        max_length=32,
+        choices=STATUS,
+        default="todo",
+    )
+
+    title = models.CharField(
+        max_length=200
+    )
+
+    description = models.TextField(
+        blank=True,
+        default=""
+    )
+
+    due_date = models.DateField(
+        null=True,
+        blank=True
+    )
+
+    tags = models.JSONField(
+        default=list,
+        blank=True
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True
+    )
 
     def __str__(self):
         return self.title
-
 
 class Note(models.Model):
     title = models.CharField(max_length=200, blank=True, default="")
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="notes")
-    project = models.ForeignKey(project, on_delete=models.CASCADE, null=True, blank=True, related_name="notes")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, null=True, blank=True, related_name="notes")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.title or f"Note {self.pk}"
-
 
 class Activity(models.Model):
     actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name="activities")
@@ -161,7 +237,6 @@ class Activity(models.Model):
     def __str__(self):
         return f"{self.actor or 'System'} {self.verb}"
 
-
 class Snippet(models.Model):
     LANGUAGE_CHOICES = [
         ("py", "Python"),
@@ -171,6 +246,14 @@ class Snippet(models.Model):
         ("md", "Markdown"),
         ("txt", "Text"),
     ]
+
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="snippets",
+        null=True,
+        blank=True,
+    )
 
     title = models.CharField(max_length=200)
     code = models.TextField()
@@ -184,7 +267,6 @@ class Snippet(models.Model):
     def __str__(self):
         return self.title
 
-
 class GitHubOAuthState(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="github_states")
     state = models.CharField(max_length=200, unique=True)
@@ -194,12 +276,11 @@ class GitHubOAuthState(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.state}"
 
-
 class GitHubAccount(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="github_account")
     github_id = models.IntegerField(null=True, blank=True)
     login = models.CharField(max_length=200, blank=True, default="")
-    access_token = models.TextField(blank=True, default="")
+    access_token = EncryptedTextField(blank=True, default="")
     scope = models.CharField(max_length=200, blank=True, default="")
     token_type = models.CharField(max_length=50, blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)

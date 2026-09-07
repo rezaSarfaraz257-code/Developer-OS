@@ -1,11 +1,22 @@
+from datetime import timedelta
+import secrets
+from urllib.parse import urlencode, urlparse
+
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from django.db import IntegrityError, transaction
+from django.conf import settings
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.shortcuts import get_object_or_404
 
 import os
-import uuid
 import requests
 
 from django.shortcuts import redirect
@@ -17,7 +28,7 @@ from .models import (
     Tool,
     UserProfile,
     Workflow,
-    project,
+    Project,
     Tag,
     Task,
     Note,
@@ -30,6 +41,7 @@ from .models import (
 from .serializers import (
     FavoriteSerializer,
     ProjectSerializer,
+    ProfileUpdateSerializer,
     ResourceSerializer,
     ToolSerializer,
     WorkflowSerializer,
@@ -42,6 +54,12 @@ from .serializers import (
 )
 
 
+def github_headers(access_token):
+    return {
+        "Authorization": f"Bearer {access_token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
 # =========================================================
 # CONFIG
 # =========================================================
@@ -57,9 +75,21 @@ GITHUB_OAUTH_REDIRECT = os.environ.get(
 FRONTEND_URL = os.environ.get(
     "FRONTEND_URL",
     "http://localhost:5173"
-)
+).rstrip("/")
+
+frontend_url_parts = urlparse(FRONTEND_URL)
+if frontend_url_parts.scheme not in {"http", "https"} or not frontend_url_parts.netloc:
+    raise ValueError("FRONTEND_URL must be an absolute http(s) URL.")
 
 GITHUB_API_URL = "https://api.github.com"
+GITHUB_TIMEOUT = (3.05, 15)
+
+
+def github_service_unavailable():
+    return Response(
+        {"error": "GitHub is temporarily unavailable. Please try again later."},
+        status=status.HTTP_502_BAD_GATEWAY,
+    )
 
 
 # =========================================================
@@ -71,74 +101,52 @@ GITHUB_API_URL = "https://api.github.com"
 def projects_api(request):
 
     if request.method == "GET":
-        projects = project.objects.all().order_by("-created_at")
-        serializer = ProjectSerializer(projects, many=True)
+        projects = Project.objects.filter(
+            owner=request.user
+        ).order_by("-created_at")
 
+        serializer = ProjectSerializer(projects, many=True)
         return Response(serializer.data)
 
-    serializer = ProjectSerializer(data=request.data)
-
-    if serializer.is_valid():
-        project_data = serializer.save()
-
-        return Response(
-            ProjectSerializer(project_data).data,
-            status=status.HTTP_201_CREATED
-        )
-
-    return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
-    )
-
-
-@api_view(["GET", "PUT", "PATCH", "DELETE"])
-@permission_classes([IsAuthenticated])
-def project_detail_api(request, pk):
-
-    try:
-        project_item = project.objects.get(pk=pk)
-
-    except project.DoesNotExist:
-        return Response(
-            {"error": "Project not found"},
-            status=status.HTTP_404_NOT_FOUND
-        )
-
-    if request.method == "GET":
-
-        return Response(
-            ProjectSerializer(project_item).data
-        )
-
-    if request.method == "PATCH":
-
-        serializer = ProjectSerializer(
-            project_item,
-            data=request.data,
-            partial=True
-        )
+    if request.method == "POST":
+        serializer = ProjectSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data)
+            serializer.save(owner=request.user)
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
         return Response(
             serializer.errors,
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    if request.method == "PUT":
 
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def project_detail_api(request, pk):
+
+    project_obj = get_object_or_404(
+        Project,
+        pk=pk,
+        owner=request.user
+    )
+
+    if request.method == "GET":
+        serializer = ProjectSerializer(project_obj)
+        return Response(serializer.data)
+
+    if request.method in ["PUT", "PATCH"]:
         serializer = ProjectSerializer(
-            project_item,
-            data=request.data
+            project_obj,
+            data=request.data,
+            partial=request.method == "PATCH"
         )
 
         if serializer.is_valid():
-            serializer.save()
-
+            serializer.save(owner=request.user)
             return Response(serializer.data)
 
         return Response(
@@ -147,13 +155,31 @@ def project_detail_api(request, pk):
         )
 
     if request.method == "DELETE":
+        project_obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-        project_item.delete()
 
-        return Response(
-            status=status.HTTP_204_NO_CONTENT
-        )
+# =========================================================
+# SESSION
+# =========================================================
 
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def logout_api(request):
+    """Blacklist the presented refresh token so logout also invalidates it."""
+    refresh_token = request.data.get("refresh")
+    if not isinstance(refresh_token, str) or not refresh_token:
+        return Response({"error": "refresh is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        token = RefreshToken(refresh_token)
+        if str(token.get("user_id")) != str(request.user.id):
+            return Response({"error": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+        token.blacklist()
+    except TokenError:
+        return Response({"error": "Invalid refresh token."}, status=status.HTTP_400_BAD_REQUEST)
+
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 # =========================================================
 # PROFILE
@@ -162,28 +188,13 @@ def project_detail_api(request, pk):
 @api_view(["GET", "PATCH"])
 @permission_classes([IsAuthenticated])
 def profile_api(request):
-
     user = request.user
+    profile, _ = UserProfile.objects.get_or_create(user=user)
 
-    profile, _ = UserProfile.objects.get_or_create(
-        user=user
-    )
-
-    if request.method == "GET":
-
-        full_name = (
-            profile.full_name
-            or " ".join(
-                filter(
-                    None,
-                    [
-                        user.first_name,
-                        user.last_name
-                    ]
-                )
-            ).strip()
-        )
-
+    def profile_response():
+        full_name = profile.full_name or " ".join(
+            filter(None, [user.first_name, user.last_name])
+        ).strip()
         return Response({
             "id": user.id,
             "username": user.username,
@@ -199,89 +210,33 @@ def profile_api(request):
             "website": profile.website,
         })
 
-    payload = request.data
+    if request.method == "GET":
+        return profile_response()
 
-    user.first_name = payload.get(
-        "first_name",
-        user.first_name
-    )
+    serializer = ProfileUpdateSerializer(data=request.data, partial=True)
+    serializer.is_valid(raise_exception=True)
+    payload = serializer.validated_data
 
-    user.last_name = payload.get(
-        "last_name",
-        user.last_name
-    )
+    if "email" in payload and payload["email"] and User.objects.exclude(pk=user.pk).filter(
+        email__iexact=payload["email"]
+    ).exists():
+        return Response({"error": "Unable to use this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
-    user.email = payload.get(
-        "email",
-        user.email
-    )
+    user_fields = {"first_name", "last_name", "email"}
+    changed_user_fields = [field for field in user_fields if field in payload]
+    for field in changed_user_fields:
+        setattr(user, field, payload[field])
+    if changed_user_fields:
+        user.save(update_fields=changed_user_fields)
 
-    user.save()
+    profile_fields = {"full_name", "avatar_url", "bio", "github", "linkedin", "x", "website"}
+    changed_profile_fields = [field for field in profile_fields if field in payload]
+    for field in changed_profile_fields:
+        setattr(profile, field, payload[field])
+    if changed_profile_fields:
+        profile.save(update_fields=[*changed_profile_fields, "updated_at"])
 
-    profile.full_name = payload.get(
-        "full_name",
-        profile.full_name
-    )
-
-    profile.avatar_url = payload.get(
-        "avatar_url",
-        profile.avatar_url
-    )
-
-    profile.bio = payload.get(
-        "bio",
-        profile.bio
-    )
-
-    profile.github = payload.get(
-        "github",
-        profile.github
-    )
-
-    profile.linkedin = payload.get(
-        "linkedin",
-        profile.linkedin
-    )
-
-    profile.x = payload.get(
-        "x",
-        profile.x
-    )
-
-    profile.website = payload.get(
-        "website",
-        profile.website
-    )
-
-    profile.save()
-
-    full_name = (
-        profile.full_name
-        or " ".join(
-            filter(
-                None,
-                [
-                    user.first_name,
-                    user.last_name
-                ]
-            )
-        ).strip()
-    )
-
-    return Response({
-        "id": user.id,
-        "username": user.username,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "email": user.email,
-        "full_name": full_name,
-        "avatar_url": profile.avatar_url,
-        "bio": profile.bio,
-        "github": profile.github,
-        "linkedin": profile.linkedin,
-        "x": profile.x,
-        "website": profile.website,
-    })
+    return profile_response()
 
 
 # =========================================================
@@ -289,6 +244,7 @@ def profile_api(request):
 # =========================================================
 
 @api_view(["POST"])
+@permission_classes([AllowAny])
 def register_api(request):
 
     username = (
@@ -323,39 +279,36 @@ def register_api(request):
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    if User.objects.filter(
-        username=username
-    ).exists():
+    try:
+        validate_email(email)
+        candidate = User(username=username, email=email)
+        validate_password(password, user=candidate)
+    except ValidationError as error:
+        return Response({"error": error.messages}, status=status.HTTP_400_BAD_REQUEST)
 
+    # Keep the same response for every duplicate case so this endpoint cannot
+    # be used to enumerate registered usernames or email addresses.
+    if User.objects.filter(username__iexact=username).exists() or User.objects.filter(email__iexact=email).exists():
         return Response(
-            {
-                "error": "Username already exists."
-            },
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "Unable to create an account with these details."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    if User.objects.filter(
-        email__iexact=email
-    ).exists():
-
+    try:
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+            )
+            UserProfile.objects.get_or_create(user=user)
+    except IntegrityError:
         return Response(
-            {
-                "error": "Email already exists."
-            },
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "Unable to create an account with these details."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
-
-    user = User.objects.create_user(
-        username=username,
-        email=email,
-        password=password,
-        first_name=first_name,
-        last_name=last_name,
-    )
-
-    UserProfile.objects.get_or_create(
-        user=user
-    )
 
     return Response(
         {
@@ -392,11 +345,7 @@ def favorites_api(request):
 
     if request.method == "DELETE":
 
-        tool_name = (
-            request.data.get("tool_name")
-            or request.query_params.get("tool_name")
-            or ""
-        ).strip()
+        tool_name = (request.data.get("tool_name") or request.query_params.get("tool_name") or "").strip()
 
         if not tool_name:
 
@@ -407,10 +356,7 @@ def favorites_api(request):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        deleted_count, _ = Favorite.objects.filter(
-            user=request.user,
-            tool_name=tool_name
-        ).delete()
+        deleted_count, _ = Favorite.objects.filter(user=request.user, tool__name__iexact=tool_name).delete()
 
         if deleted_count == 0:
 
@@ -425,27 +371,24 @@ def favorites_api(request):
             status=status.HTTP_204_NO_CONTENT
         )
 
-    serializer = FavoriteSerializer(
-        data={
-            "user": request.user.id,
-            **request.data,
-        }
-    )
+    tool_name = (request.data.get("tool_name") or "").strip()
+    if not tool_name or len(tool_name) > 120:
+        return Response({"error": "A valid tool_name is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    if serializer.is_valid():
-
-        serializer.save(
-            user=request.user
+    # The UI ships a small catalog before the database is seeded.  Resolve a
+    # matching catalog item, creating only the harmless metadata it supplies.
+    tool = Tool.objects.filter(name__iexact=tool_name).first()
+    if tool is None:
+        tool = Tool.objects.create(
+            name=tool_name,
+            tag=(request.data.get("tag") or "General").strip()[:50],
+            description=(request.data.get("description") or "").strip()[:2000],
         )
 
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
-        )
-
+    favorite, created = Favorite.objects.get_or_create(user=request.user, tool=tool)
     return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
+        FavoriteSerializer(favorite).data,
+        status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
     )
 
 
@@ -454,6 +397,7 @@ def favorites_api(request):
 # =========================================================
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def resources_api(request):
 
     if request.method == "GET":
@@ -468,6 +412,9 @@ def resources_api(request):
         )
 
         return Response(serializer.data)
+
+    if not request.user.is_staff:
+        return Response({"error": "Only staff can manage the shared resource catalog."}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = ResourceSerializer(
         data=request.data
@@ -493,6 +440,7 @@ def resources_api(request):
 # =========================================================
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def workflows_api(request):
 
     if request.method == "GET":
@@ -507,6 +455,9 @@ def workflows_api(request):
         )
 
         return Response(serializer.data)
+
+    if not request.user.is_staff:
+        return Response({"error": "Only staff can manage the shared workflow catalog."}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = WorkflowSerializer(
         data=request.data
@@ -531,46 +482,24 @@ def workflows_api(request):
 # TOOLS
 # =========================================================
 
-@api_view(["GET", "POST"])
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def tools_api(request):
-
-    if request.method == "GET":
-
-        tools = Tool.objects.all().order_by(
-            "-created_at"
-        )
-
-        serializer = ToolSerializer(
-            tools,
-            many=True
-        )
-
-        return Response(serializer.data)
+    tools = Tool.objects.all().order_by("name")
 
     serializer = ToolSerializer(
-        data=request.data
+        tools,
+        many=True
     )
 
-    if serializer.is_valid():
-
-        tool = serializer.save()
-
-        return Response(
-            ToolSerializer(tool).data,
-            status=status.HTTP_201_CREATED
-        )
-
-    return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
-    )
-
+    return Response(serializer.data)
 
 # =========================================================
 # TAGS
 # =========================================================
 
 @api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
 def tags_api(request):
 
     if request.method == "GET":
@@ -585,6 +514,9 @@ def tags_api(request):
         )
 
         return Response(serializer.data)
+
+    if not request.user.is_staff:
+        return Response({"error": "Only staff can manage shared tags."}, status=status.HTTP_403_FORBIDDEN)
 
     serializer = TagSerializer(
         data=request.data
@@ -614,36 +546,40 @@ def tags_api(request):
 def tasks_api(request):
 
     if request.method == "GET":
+        tasks = Task.objects.filter(
+            project__owner=request.user
+        ).order_by("-created_at")
 
-        qs = Task.objects.all().order_by(
-            "-created_at"
-        )
-
-        serializer = TaskSerializer(
-            qs,
-            many=True
-        )
-
+        serializer = TaskSerializer(tasks, many=True)
         return Response(serializer.data)
 
-    serializer = TaskSerializer(
-        data=request.data
-    )
+    if request.method == "POST":
 
-    if serializer.is_valid():
+        project_id = request.data.get("project")
 
-        serializer.save()
+        if not project_id:
+            return Response({"error": "project is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
+        project_obj = get_object_or_404(
+            Project,
+            pk=project_id,
+            owner=request.user
         )
 
-    return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
-    )
+        serializer = TaskSerializer(data=request.data)
 
+        if serializer.is_valid():
+            serializer.save(project=project_obj, assignee=request.user)
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 # =========================================================
 # NOTES
@@ -654,37 +590,43 @@ def tasks_api(request):
 def notes_api(request):
 
     if request.method == "GET":
+        notes = Note.objects.filter(
+            project__owner=request.user
+        ).order_by("-created_at")
 
-        qs = Note.objects.all().order_by(
-            "-created_at"
-        )
-
-        serializer = NoteSerializer(
-            qs,
-            many=True
-        )
-
+        serializer = NoteSerializer(notes, many=True)
         return Response(serializer.data)
 
-    serializer = NoteSerializer(
-        data=request.data
-    )
+    if request.method == "POST":
 
-    if serializer.is_valid():
+        project_id = request.data.get("project")
 
-        serializer.save(
-            author=request.user
+        if not project_id:
+            return Response({"error": "project is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        project_obj = get_object_or_404(
+            Project,
+            pk=project_id,
+            owner=request.user
         )
+
+        serializer = NoteSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(
+                author=request.user,
+                project=project_obj
+            )
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
         return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
         )
-
-    return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
-    )
 
 
 # =========================================================
@@ -694,18 +636,9 @@ def notes_api(request):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def activity_api(request):
-
-    qs = Activity.objects.all().order_by(
-        "-created_at"
-    )[:200]
-
-    serializer = ActivitySerializer(
-        qs,
-        many=True
-    )
-
-    return Response(serializer.data)
-
+    """Return only the authenticated user's activity, never global history."""
+    activities = Activity.objects.filter(actor=request.user).order_by("-created_at")[:200]
+    return Response(ActivitySerializer(activities, many=True).data)
 
 # =========================================================
 # SNIPPETS
@@ -716,51 +649,47 @@ def activity_api(request):
 def snippets_api(request):
 
     if request.method == "GET":
-
-        qs = Snippet.objects.all().order_by(
-            "-created_at"
-        )
+        snippets = Snippet.objects.filter(
+            author=request.user
+        ).order_by("-created_at")
 
         serializer = SnippetSerializer(
-            qs,
+            snippets,
             many=True
         )
 
         return Response(serializer.data)
 
-    serializer = SnippetSerializer(
-        data=request.data
-    )
+    if request.method == "POST":
 
-    if serializer.is_valid():
+        project_id = request.data.get("project")
 
-        serializer.save(
-            author=request.user
-        )
+        project_obj = None
+
+        if project_id:
+            project_obj = get_object_or_404(
+                Project,
+                pk=project_id,
+                owner=request.user
+            )
+
+        serializer = SnippetSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save(
+                author=request.user,
+                project=project_obj
+            )
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
 
         return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
         )
-
-    return Response(
-        serializer.errors,
-        status=status.HTTP_400_BAD_REQUEST
-    )
-
-
-# =========================================================
-# GITHUB HELPERS
-# =========================================================
-
-def github_headers(access_token):
-
-    return {
-        "Authorization": f"Bearer {access_token}",
-        "Accept": "application/vnd.github+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-
 
 # =========================================================
 # GITHUB AUTHORIZE
@@ -786,28 +715,26 @@ def github_authorize(request):
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    # Generate secure random state
-    state = uuid.uuid4().hex
+    if not settings.GITHUB_TOKEN_ENCRYPTION_KEY:
+        return Response(
+            {"error": "GitHub token encryption is not configured."},
+            status=status.HTTP_503_SERVICE_UNAVAILABLE,
+        )
 
-    # Remove old states for this user
-    GitHubOAuthState.objects.filter(
-        user=request.user,
-        used=False
-    ).delete()
+    state = secrets.token_urlsafe(32)
+    expires_before = timezone.now() - timedelta(minutes=10)
+    GitHubOAuthState.objects.filter(user=request.user, created_at__lt=expires_before).delete()
+    GitHubOAuthState.objects.filter(user=request.user, used=False).delete()
+    GitHubOAuthState.objects.create(user=request.user, state=state)
 
-    # Save state
-    GitHubOAuthState.objects.create(
-        user=request.user,
-        state=state
-    )
-
-    github_url = (
-        "https://github.com/login/oauth/authorize"
-        f"?client_id={GITHUB_CLIENT_ID}"
-        f"&redirect_uri={GITHUB_OAUTH_REDIRECT}"
-        f"&scope=read:user%20user:email%20repo"
-        f"&state={state}"
-    )
+    # Request the minimum scope needed for identity and public repositories.
+    # Do not silently request broad private-repository access.
+    github_url = "https://github.com/login/oauth/authorize?" + urlencode({
+        "client_id": GITHUB_CLIENT_ID,
+        "redirect_uri": GITHUB_OAUTH_REDIRECT,
+        "scope": "read:user user:email",
+        "state": state,
+    })
 
     # Frontend receives this URL and redirects browser to it.
     return Response({
@@ -820,6 +747,7 @@ def github_authorize(request):
 # =========================================================
 
 @api_view(["GET"])
+@permission_classes([AllowAny])
 def github_callback(request):
 
     code = request.query_params.get("code")
@@ -828,9 +756,7 @@ def github_callback(request):
 
     if github_error:
 
-        return redirect(
-            f"{FRONTEND_URL}/settings?github=error"
-        )
+        return redirect(f"{FRONTEND_URL}/?github=error")
 
     if not code or not state:
 
@@ -842,53 +768,43 @@ def github_callback(request):
         )
 
     try:
-
-        oauth_state = GitHubOAuthState.objects.select_related(
-            "user"
-        ).get(
-            state=state,
-            used=False
-        )
-
+        with transaction.atomic():
+            oauth_state = GitHubOAuthState.objects.select_for_update().select_related("user").get(
+                state=state,
+                used=False,
+                created_at__gte=timezone.now() - timedelta(minutes=10),
+            )
+            # Consume state before the external exchange to prevent replay.
+            oauth_state.used = True
+            oauth_state.save(update_fields=["used"])
     except GitHubOAuthState.DoesNotExist:
-
-        return Response(
-            {
-                "error": "Invalid or expired OAuth state."
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
-
-    # Mark state as used immediately
-    oauth_state.used = True
-    oauth_state.save(update_fields=["used"])
+        return Response({"error": "Invalid or expired OAuth state."}, status=status.HTTP_400_BAD_REQUEST)
 
     # Exchange code for GitHub access token
-    token_response = requests.post(
-        "https://github.com/login/oauth/access_token",
-        data={
-            "client_id": GITHUB_CLIENT_ID,
-            "client_secret": GITHUB_CLIENT_SECRET,
-            "code": code,
-            "redirect_uri": GITHUB_OAUTH_REDIRECT,
-        },
-        headers={
-            "Accept": "application/json"
-        },
-        timeout=15,
-    )
+    try:
+        token_response = requests.post(
+            "https://github.com/login/oauth/access_token",
+            data={
+                "client_id": GITHUB_CLIENT_ID,
+                "client_secret": GITHUB_CLIENT_SECRET,
+                "code": code,
+                "redirect_uri": GITHUB_OAUTH_REDIRECT,
+            },
+            headers={"Accept": "application/json"},
+            timeout=GITHUB_TIMEOUT,
+        )
+
+    except requests.RequestException:
+        return github_service_unavailable()
 
     if token_response.status_code != 200:
 
-        return Response(
-            {
-                "error": "Failed to exchange GitHub code.",
-                "details": token_response.text,
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "Failed to exchange GitHub code."}, status=status.HTTP_400_BAD_REQUEST)
 
-    token_data = token_response.json()
+    try:
+        token_data = token_response.json()
+    except ValueError:
+        return github_service_unavailable()
 
     access_token = token_data.get(
         "access_token"
@@ -896,35 +812,29 @@ def github_callback(request):
 
     if not access_token:
 
-        return Response(
-            {
-                "error": "GitHub did not return an access token.",
-                "details": token_data,
-            },
-            status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response({"error": "GitHub did not return an access token."}, status=status.HTTP_400_BAD_REQUEST)
 
     # -----------------------------------------------------
     # Get GitHub user
     # -----------------------------------------------------
 
-    user_response = requests.get(
-        f"{GITHUB_API_URL}/user",
-        headers=github_headers(access_token),
-        timeout=15,
-    )
+    try:
+        user_response = requests.get(
+            f"{GITHUB_API_URL}/user",
+            headers=github_headers(access_token),
+            timeout=GITHUB_TIMEOUT,
+        )
+    except requests.RequestException:
+        return github_service_unavailable()
 
     if user_response.status_code != 200:
 
-        return Response(
-            {
-                "error": "Failed to fetch GitHub user.",
-                "details": user_response.text,
-            },
-            status=user_response.status_code
-        )
+        return Response({"error": "Failed to fetch GitHub user."}, status=status.HTTP_502_BAD_GATEWAY)
 
-    github_user = user_response.json()
+    try:
+        github_user = user_response.json()
+    except ValueError:
+        return github_service_unavailable()
 
     github_id = github_user.get("id")
     github_login = github_user.get("login", "")
@@ -933,7 +843,7 @@ def github_callback(request):
     # Save GitHub account
     # -----------------------------------------------------
 
-    github_account, _ = GitHubAccount.objects.update_or_create(
+    GitHubAccount.objects.update_or_create(
         user=oauth_state.user,
         defaults={
             "github_id": github_id,
@@ -987,9 +897,7 @@ def github_callback(request):
     )
 
     # Redirect back to frontend
-    return redirect(
-        f"{FRONTEND_URL}/settings?github=connected"
-    )
+    return redirect(f"{FRONTEND_URL}/?github=connected")
 
 
 # =========================================================
@@ -1060,6 +968,7 @@ def github_account_api(request):
 @permission_classes([IsAuthenticated])
 def github_repos_api(request):
 
+
     try:
 
         github_account = GitHubAccount.objects.get(
@@ -1106,19 +1015,20 @@ def github_repos_api(request):
         page = 1
         per_page = 30
 
-    response = requests.get(
-        f"{GITHUB_API_URL}/user/repos",
-        headers=github_headers(
-            github_account.access_token
-        ),
-        params={
-            "sort": "updated",
-            "direction": "desc",
-            "per_page": per_page,
-            "page": page,
-        },
-        timeout=15,
-    )
+    try:
+        response = requests.get(
+            f"{GITHUB_API_URL}/user/repos",
+            headers=github_headers(github_account.access_token),
+            params={
+                "sort": "updated",
+                "direction": "desc",
+                "per_page": per_page,
+                "page": page,
+            },
+            timeout=GITHUB_TIMEOUT,
+        )
+    except requests.RequestException:
+        return github_service_unavailable()
 
     if response.status_code == 401:
 
@@ -1131,15 +1041,12 @@ def github_repos_api(request):
 
     if response.status_code != 200:
 
-        return Response(
-            {
-                "error": "Failed to fetch GitHub repositories.",
-                "details": response.text,
-            },
-            status=response.status_code
-        )
+        return Response({"error": "Failed to fetch GitHub repositories."}, status=status.HTTP_502_BAD_GATEWAY)
 
-    repositories = response.json()
+    try:
+        repositories = response.json()
+    except ValueError:
+        return github_service_unavailable()
 
     formatted_repositories = []
 
@@ -1151,8 +1058,6 @@ def github_repos_api(request):
             "full_name": repo.get("full_name"),
             "description": repo.get("description"),
             "html_url": repo.get("html_url"),
-            "clone_url": repo.get("clone_url"),
-            "ssh_url": repo.get("ssh_url"),
             "language": repo.get("language"),
             "private": repo.get("private"),
             "fork": repo.get("fork"),
@@ -1234,25 +1139,23 @@ def github_sync_activity(request):
     # Get authenticated GitHub user
     # -----------------------------------------------------
 
-    user_response = requests.get(
-        f"{GITHUB_API_URL}/user",
-        headers=github_headers(
-            github_account.access_token
-        ),
-        timeout=15,
-    )
+    try:
+        user_response = requests.get(
+            f"{GITHUB_API_URL}/user",
+            headers=github_headers(github_account.access_token),
+            timeout=GITHUB_TIMEOUT,
+        )
+    except requests.RequestException:
+        return github_service_unavailable()
 
     if user_response.status_code != 200:
 
-        return Response(
-            {
-                "error": "Failed to authenticate with GitHub.",
-                "details": user_response.text,
-            },
-            status=user_response.status_code
-        )
+        return Response({"error": "Failed to authenticate with GitHub."}, status=status.HTTP_502_BAD_GATEWAY)
 
-    github_user = user_response.json()
+    try:
+        github_user = user_response.json()
+    except ValueError:
+        return github_service_unavailable()
 
     github_login = github_user.get(
         "login"
@@ -1262,28 +1165,24 @@ def github_sync_activity(request):
     # Get GitHub events
     # -----------------------------------------------------
 
-    events_response = requests.get(
-        f"{GITHUB_API_URL}/users/{github_login}/events",
-        headers=github_headers(
-            github_account.access_token
-        ),
-        params={
-            "per_page": 30
-        },
-        timeout=15,
-    )
+    try:
+        events_response = requests.get(
+            f"{GITHUB_API_URL}/users/{github_login}/events",
+            headers=github_headers(github_account.access_token),
+            params={"per_page": 30},
+            timeout=GITHUB_TIMEOUT,
+        )
+    except requests.RequestException:
+        return github_service_unavailable()
 
     if events_response.status_code != 200:
 
-        return Response(
-            {
-                "error": "Failed to fetch GitHub activity.",
-                "details": events_response.text,
-            },
-            status=events_response.status_code
-        )
+        return Response({"error": "Failed to fetch GitHub activity."}, status=status.HTTP_502_BAD_GATEWAY)
 
-    events = events_response.json()
+    try:
+        events = events_response.json()
+    except ValueError:
+        return github_service_unavailable()
 
     synced = 0
 
@@ -1313,10 +1212,6 @@ def github_sync_activity(request):
             ""
         )
 
-        payload = event.get(
-            "payload"
-        ) or {}
-
         message = (
             f"{event_type} in {repo_name}"
             if repo_name
@@ -1342,7 +1237,6 @@ def github_sync_activity(request):
                 "github_event_id": event_id,
                 "repo": repo_name,
                 "event_type": event_type,
-                "payload": payload,
                 "created_at": event.get(
                     "created_at"
                 ),

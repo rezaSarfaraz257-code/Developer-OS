@@ -100,6 +100,11 @@ Developer-os/
 
 ## Quick start
 
+Before starting, copy `.env.example` to `.env` and set a long random
+`DJANGO_SECRET_KEY`. GitHub integration additionally requires its OAuth values
+and `GITHUB_TOKEN_ENCRYPTION_KEY`; generate the latter with the command shown
+in `.env.example`. Never commit `.env`.
+
 ### 1) Backend
 
 ```bash
@@ -117,6 +122,19 @@ npm run dev
 ```
 
 Then open the local Vite URL shown in the terminal.
+
+## Security and production
+
+- Set `DEBUG=False`, a unique `DJANGO_SECRET_KEY`, precise `ALLOWED_HOSTS`,
+  `CORS_ALLOWED_ORIGINS`, and `CSRF_TRUSTED_ORIGINS` before deployment.
+- Serve the backend exclusively behind HTTPS. The production configuration
+  enables HTTPS redirects, secure cookies, HSTS, clickjacking protection, and
+  restrictive API response headers.
+- GitHub OAuth tokens are encrypted in the database. Keep
+  `GITHUB_TOKEN_ENCRYPTION_KEY` private and stable; changing it invalidates
+  stored GitHub connections.
+- `docker-compose.yml` is a local-development configuration. Use a managed
+  database, a reverse proxy, and environment-managed secrets for production.
 
 ## Authentication
 

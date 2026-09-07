@@ -1,4 +1,3 @@
-import React from 'react';
 
 function SearchBar({ value, onChange, placeholder = 'Search projects...' }) {
   return (

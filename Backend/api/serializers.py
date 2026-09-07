@@ -1,16 +1,39 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from urllib.parse import urlparse
 
-from .models import Favorite, Resource, Tool, UserProfile, Workflow, project
+from .models import Favorite, Resource, Tool, UserProfile, Workflow, Project
 from .models import Tag, Task, Note, Activity
 from .models import Snippet
 from .models import GitHubAccount
 
 
+def validate_http_url(value):
+    if not value:
+        return value
+    if urlparse(value).scheme not in {"http", "https"}:
+        raise serializers.ValidationError("Only http and https URLs are allowed.")
+    return value
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = project
-        fields = '__all__'
+        model = Project
+        fields = [
+            'id', 'title', 'description', 'category', 'tags', 'link',
+            'status', 'created_at', 'uploaded_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'uploaded_at']
+
+    def validate_tags(self, value):
+        if not isinstance(value, list) or len(value) > 20:
+            raise serializers.ValidationError('Tags must be a list of at most 20 items.')
+        if any(not isinstance(tag, str) or len(tag.strip()) > 50 for tag in value):
+            raise serializers.ValidationError('Each tag must be a string of at most 50 characters.')
+        return [tag.strip() for tag in value if tag.strip()]
+
+    def validate_link(self, value):
+        return validate_http_url(value)
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -25,6 +48,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'x',
             'website',
         ]
+
+
+class ProfileUpdateSerializer(serializers.Serializer):
+    first_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    last_name = serializers.CharField(max_length=150, required=False, allow_blank=True)
+    email = serializers.EmailField(max_length=254, required=False, allow_blank=True)
+    full_name = serializers.CharField(max_length=200, required=False, allow_blank=True)
+    avatar_url = serializers.URLField(required=False, allow_blank=True, validators=[validate_http_url])
+    bio = serializers.CharField(max_length=5_000, required=False, allow_blank=True)
+    github = serializers.URLField(required=False, allow_blank=True, validators=[validate_http_url])
+    linkedin = serializers.URLField(required=False, allow_blank=True, validators=[validate_http_url])
+    x = serializers.URLField(required=False, allow_blank=True, validators=[validate_http_url])
+    website = serializers.URLField(required=False, allow_blank=True, validators=[validate_http_url])
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -42,55 +78,78 @@ class UserSerializer(serializers.ModelSerializer):
 class ResourceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Resource
-        fields = '__all__'
+        fields = ['id', 'title', 'description', 'resource_type', 'category', 'link', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate_link(self, value):
+        return validate_http_url(value)
 
 
 class WorkflowSerializer(serializers.ModelSerializer):
     class Meta:
         model = Workflow
-        fields = '__all__'
+        fields = ['id', 'title', 'level', 'duration', 'summary', 'steps', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+    def validate_steps(self, value):
+        if not isinstance(value, list) or len(value) > 50:
+            raise serializers.ValidationError('Steps must be a list of at most 50 items.')
+        if any(not isinstance(step, str) or len(step) > 500 for step in value):
+            raise serializers.ValidationError('Each step must be a string of at most 500 characters.')
+        return value
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
+    tool_name = serializers.CharField(source='tool.name', read_only=True)
+    tag = serializers.CharField(source='tool.tag', read_only=True)
+    description = serializers.CharField(source='tool.description', read_only=True)
+
     class Meta:
         model = Favorite
-        fields = '__all__'
+        fields = ['id', 'tool', 'tool_name', 'tag', 'description', 'created_at']
+        read_only_fields = fields
 
 
 class ToolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tool
-        fields = '__all__'
+        fields = ['id', 'name', 'tag', 'category', 'description', 'accent', 'rating', 'features', 'created_at']
+        read_only_fields = ['id', 'created_at']
 
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = '__all__'
+        fields = ['id', 'name', 'slug']
+        read_only_fields = ['id']
 
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
-        fields = '__all__'
+        fields = ['id', 'project', 'assignee', 'status', 'title', 'description', 'due_date', 'tags', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'project', 'assignee', 'created_at', 'updated_at']
 
 
 class NoteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Note
-        fields = '__all__'
+        fields = ['id', 'project', 'title', 'content', 'author', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'project', 'author', 'created_at', 'updated_at']
 
 
 class ActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = Activity
-        fields = '__all__'
+        fields = ['id', 'actor', 'verb', 'message', 'related_type', 'related_id', 'metadata', 'created_at']
+        read_only_fields = fields
 
 
 class SnippetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snippet
-        fields = '__all__'
+        fields = ['id', 'author', 'project', 'title', 'code', 'language', 'description', 'tags', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'author', 'project', 'created_at', 'updated_at']
 
 
 class GitHubAccountSerializer(serializers.ModelSerializer):

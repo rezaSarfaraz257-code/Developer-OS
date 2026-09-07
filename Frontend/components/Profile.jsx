@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiFetch } from "../src/services/api";
+import { apiFetch, safeExternalUrl } from "../src/services/api";
 
 function Profile({ onClose }) {
   const [loading, setLoading] = useState(true);
@@ -18,6 +18,7 @@ function Profile({ onClose }) {
     website: "",
   });
   const [message, setMessage] = useState(null);
+  const avatarUrl = safeExternalUrl(data.avatar_url);
 
   useEffect(() => {
     let mounted = true;
@@ -84,8 +85,8 @@ function Profile({ onClose }) {
         ) : (
           <form onSubmit={handleSubmit} className="profile-form">
             <div className="profile-avatar-block">
-              {data.avatar_url ? (
-                <img src={data.avatar_url} alt="avatar" className="profile-avatar" />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="avatar" className="profile-avatar" />
               ) : (
                 <div className="profile-avatar placeholder">{(data.full_name || data.username || "U").charAt(0).toUpperCase()}</div>
               )}

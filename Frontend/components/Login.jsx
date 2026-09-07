@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../src/services/api";
 import './Login.css'
 
 function Login({ onLogin }) {
@@ -12,7 +13,7 @@ function Login({ onLogin }) {
     setError("");
 
     const response = await fetch(
-      "http://127.0.0.1:8000/api/token/",
+      `${API_URL}/token/`,
       {
         method: "POST",
         headers: {
@@ -28,8 +29,8 @@ function Login({ onLogin }) {
     if (response.ok) {
       const data = await response.json();
 
-      localStorage.setItem("access", data.access);
-      localStorage.setItem("refresh", data.refresh);
+      sessionStorage.setItem("access", data.access);
+      sessionStorage.setItem("refresh", data.refresh);
 
       onLogin();
     } else {
