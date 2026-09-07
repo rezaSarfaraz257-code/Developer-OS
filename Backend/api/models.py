@@ -2,6 +2,7 @@ from uuid import uuid4
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils.text import slugify
 
 from .fields import EncryptedTextField
@@ -121,6 +122,14 @@ class Tool(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                Lower("name"),
+                name="unique_tool_name_case_insensitive",
+            )
+        ]
 
 class Favorite(models.Model):
     user = models.ForeignKey(

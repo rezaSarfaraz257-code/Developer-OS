@@ -107,6 +107,7 @@ function ProjectForm({
         placeholder="Project title"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
+        required
       />
 
       <textarea

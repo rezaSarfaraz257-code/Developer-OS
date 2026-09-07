@@ -402,15 +402,11 @@ def favorites_api(request):
     if not tool_name or len(tool_name) > 120:
         return Response({"error": "A valid tool_name is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # The UI ships a small catalog before the database is seeded.  Resolve a
-    # matching catalog item, creating only the harmless metadata it supplies.
+    # Favorites reference the staff-managed shared catalog. A regular user
+    # must never be able to create or modify global Tool records here.
     tool = Tool.objects.filter(name__iexact=tool_name).first()
     if tool is None:
-        tool = Tool.objects.create(
-            name=tool_name,
-            tag=(request.data.get("tag") or "General").strip()[:50],
-            description=(request.data.get("description") or "").strip()[:2000],
-        )
+        return Response({"error": "Tool not found in the catalog."}, status=status.HTTP_404_NOT_FOUND)
 
     favorite, created = Favorite.objects.get_or_create(user=request.user, tool=tool)
     return Response(
@@ -731,7 +727,7 @@ def github_authorize(request):
             {
                 "error": "GITHUB_CLIENT_ID is not configured."
             },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
         )
 
     if not GITHUB_CLIENT_SECRET:
@@ -739,7 +735,7 @@ def github_authorize(request):
             {
                 "error": "GITHUB_CLIENT_SECRET is not configured."
             },
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            status=status.HTTP_503_SERVICE_UNAVAILABLE
         )
 
     if not settings.GITHUB_TOKEN_ENCRYPTION_KEY:

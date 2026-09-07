@@ -45,13 +45,56 @@ export function revokeRefreshToken() {
   }).catch(() => {});
 }
 
-export async function refreshAccessToken() {
-  const refresh = authStorage().getItem("refresh");
+let refreshPromise = null;
+let refreshTokenInFlight = null;
 
-  if (!refresh) {
-    return null;
+function formatErrorMessage(payload, fallback = "Request failed.") {
+  if (!payload) {
+    return fallback;
+  }
+  if (typeof payload === "string") {
+    return payload || fallback;
+  }
+  if (Array.isArray(payload)) {
+    return payload.filter(Boolean).join(" ") || fallback;
   }
 
+  const directMessage = payload.detail || payload.error || payload.message;
+  if (directMessage) {
+    return Array.isArray(directMessage)
+      ? directMessage.join(" ")
+      : String(directMessage);
+  }
+
+  // Django REST Framework returns validation failures as field -> messages.
+  // Preserve those messages instead of replacing them with "Request failed".
+  const fieldMessages = Object.entries(payload)
+    .map(([field, messages]) => {
+      const text = Array.isArray(messages)
+        ? messages.join(" ")
+        : typeof messages === "string"
+          ? messages
+          : "";
+      return text ? `${field}: ${text}` : "";
+    })
+    .filter(Boolean);
+
+  return fieldMessages.join(" ") || fallback;
+}
+
+async function readErrorPayload(response) {
+  const responseText = await response.text().catch(() => "");
+  if (!responseText) {
+    return null;
+  }
+  try {
+    return JSON.parse(responseText);
+  } catch {
+    return responseText;
+  }
+}
+
+async function requestRefreshToken(refresh) {
   const response = await fetch(`${API_URL}/token/refresh/`, {
     method: "POST",
     headers: {
@@ -59,6 +102,12 @@ export async function refreshAccessToken() {
     },
     body: JSON.stringify({ refresh }),
   });
+
+  // A logout or new login occurred while this request was in flight.
+  // Never overwrite or clear that newer session with an old refresh result.
+  if (authStorage().getItem("refresh") !== refresh) {
+    return null;
+  }
 
   if (!response.ok) {
     clearAuth();
@@ -79,8 +128,31 @@ export async function refreshAccessToken() {
   return data.access;
 }
 
+export function refreshAccessToken() {
+  const refresh = authStorage().getItem("refresh");
+  if (!refresh) {
+    return Promise.resolve(null);
+  }
+
+  // Refresh-token rotation invalidates the previous refresh token. A single
+  // shared request prevents simultaneous API calls from invalidating each
+  // other's refresh attempt and producing random 401s.
+  if (!refreshPromise || refreshTokenInFlight !== refresh) {
+    refreshTokenInFlight = refresh;
+    refreshPromise = requestRefreshToken(refresh).finally(() => {
+      // A newer login may already be refreshing a different token.
+      if (refreshTokenInFlight === refresh) {
+        refreshPromise = null;
+        refreshTokenInFlight = null;
+      }
+    });
+  }
+  return refreshPromise;
+}
+
 export async function apiFetch(endpoint, options = {}) {
   const token = getAccessToken();
+  let tokenUsedForRequest = token;
   const isFormData =
     typeof FormData !== "undefined" && options.body instanceof FormData;
 
@@ -113,6 +185,7 @@ export async function apiFetch(endpoint, options = {}) {
 
     if (refreshedToken) {
       headers.Authorization = `Bearer ${refreshedToken}`;
+      tokenUsedForRequest = refreshedToken;
       response = await fetch(`${API_URL}${endpoint}`, {
         ...options,
         headers,
@@ -121,37 +194,28 @@ export async function apiFetch(endpoint, options = {}) {
   }
 
   if (!response.ok) {
-    // Try to parse JSON error payload for clearer messages
-    let errorPayload = null;
-    try {
-      errorPayload = await response.json();
-    } catch {
-      // ignore json parse errors
-    }
+    const errorPayload = await readErrorPayload(response);
+    const message = formatErrorMessage(errorPayload);
 
-    // If authentication failed and refresh is not available or refresh failed, clear auth
+    // If authentication failed and refresh is not available or refresh failed, clear auth.
     if (response.status === 401) {
-      // Ensure tokens are cleared so UI can handle redirect to auth
-      clearAuth();
-
-      // Dispatch a global event so the app UI can react immediately
-      try {
-        const msg = (errorPayload && (errorPayload.detail || errorPayload.error || errorPayload.message)) || "Authentication required";
-        window.dispatchEvent(new CustomEvent("auth:expired", { detail: { message: msg } }));
-      } catch {
-        // ignore in non-browser environments
+      // Do not let an old in-flight request clear a session created after it.
+      if (getAccessToken() === tokenUsedForRequest) {
+        clearAuth();
       }
 
-      throw new Error(
-        (errorPayload && (errorPayload.detail || errorPayload.error || errorPayload.message)) ||
-          "Authentication required",
-      );
-    }
+      try {
+        window.dispatchEvent(
+          new CustomEvent("auth:expired", {
+            detail: { message: formatErrorMessage(errorPayload, "Authentication required") },
+          }),
+        );
+      } catch {
+        // Ignore browser-event failures outside the browser.
+      }
 
-    const message =
-      (errorPayload && (errorPayload.detail || errorPayload.error || errorPayload.message)) ||
-      (await response.text().catch(() => "")) ||
-      "Request failed";
+      throw new Error(formatErrorMessage(errorPayload, "Authentication required"));
+    }
 
     throw new Error(message);
   }

@@ -2,7 +2,7 @@ from io import BytesIO
 import tempfile
 
 from django.contrib.auth.models import User
-from django.db import connection
+from django.db import IntegrityError, connection
 from django.test import override_settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cryptography.fernet import Fernet
@@ -58,6 +58,21 @@ class ProjectApiSecurityTests(APITestCase):
         self.assertEqual(response.data["tool_name"], "Django")
         self.assertNotIn("user", response.data)
 
+    def test_favorites_cannot_create_shared_tools(self):
+        self.authenticate(self.owner)
+        tool_count = Tool.objects.count()
+
+        response = self.client.post("/api/favorites/", {"tool_name": "Unapproved Tool"}, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(Tool.objects.count(), tool_count)
+
+    def test_tool_names_are_case_insensitively_unique(self):
+        Tool.objects.create(name="React", tag="Frontend")
+
+        with self.assertRaises(IntegrityError):
+            Tool.objects.create(name="react", tag="Frontend")
+
     def test_only_staff_can_modify_shared_catalogs(self):
         self.authenticate(self.owner)
         response = self.client.post("/api/resources/", {"title": "Untrusted resource"}, format="json")
@@ -94,6 +109,28 @@ class ProjectApiSecurityTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("website", response.data)
+
+    def test_profile_accepts_the_multipart_payload_sent_by_the_frontend(self):
+        self.authenticate(self.owner)
+
+        response = self.client.patch(
+            "/api/profile/",
+            {
+                "first_name": "Profile",
+                "last_name": "Owner",
+                "email": "owner@example.test",
+                "full_name": "Profile Owner",
+                "bio": "Updated safely.",
+                "github": "https://github.com/owner",
+                "linkedin": "https://www.linkedin.com/in/owner",
+                "website": "https://owner.example.test",
+            },
+            format="multipart",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["full_name"], "Profile Owner")
+        self.assertEqual(response.data["website"], "https://owner.example.test")
 
     def test_profile_avatar_is_reencoded_and_returned_as_a_media_url(self):
         image_buffer = BytesIO()

@@ -71,7 +71,9 @@ export default function DashboardPage({
   };
 
   const totalProjects = projectsData.length;
-  const completedProjects = projectsData.filter((item) => item.completed).length;
+  const completedProjects = projectsData.filter(
+    (item) => item.status === "Completed",
+  ).length;
   const activeProjects = Math.max(0, totalProjects - completedProjects);
 
   if (!isAuthenticated) {
@@ -200,23 +202,17 @@ export default function DashboardPage({
             onCreate={async (payload) => {
               setCreating(true);
               try {
-                if (isAuthenticated) {
-                  const response = await apiFetch("/projects/", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                  });
+                const response = await apiFetch("/projects/", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(payload),
+                });
 
-                  const created = await response.json();
-                  handleProjectCreated(created);
-                } else {
-                  // local fallback when not authenticated
-                  const localProject = { id: Date.now(), title: payload.title, description: payload.description || "", completed: false };
-                  handleProjectCreated(localProject);
-                }
+                const created = await response.json();
+                handleProjectCreated(created);
               } catch (err) {
                 console.error("Quick create failed:", err);
-                alert("Failed to create project.");
+                alert(err.message || "Failed to create project.");
               } finally {
                 setCreating(false);
                 setShowQuickCreate(false);
