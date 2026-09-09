@@ -281,79 +281,11 @@ async function registerWithBackend(payload) {
   return response.json();
 }
 
-
-
 function App() {
   const [page, setPage] = useState("home");
   const [selectedTool, setSelectedTool] = useState(tools[0]);
-  const [selectedProject, setSelectedProject] = useState({
-    id: 1,
-    title: "Developer OS",
-    description:
-      "A digital workspace for tools, workflows, knowledge, and engineering context.",
-    category: "Productivity",
-    status: "In Progress",
-    owner: "Developer",
-    updated: "Today",
-    tags: ["Frontend", "Backend", "AI"],
-  });
+  const [selectedProject, setSelectedProject] = useState(null);
   const [projectTab, setProjectTab] = useState("overview");
-  const [projectTasks] = useState([
-    {
-      id: 1,
-      title: "Refine workspace flow",
-      status: "in review",
-      description: "Improve project clarity and navigation.",
-    },
-    {
-      id: 2,
-      title: "Add resource library",
-      status: "todo",
-      description: "Prepare reusable knowledge modules.",
-    },
-    {
-      id: 3,
-      title: "Review AI assistant loop",
-      status: "done",
-      description: "Define smarter context prompts.",
-    },
-  ]);
-  const [projectNotes] = useState([
-    {
-      id: 1,
-      title: "System idea",
-      tag: "Product",
-      content:
-        "Keep the digital workspace focused on context, momentum, and reusable patterns.",
-    },
-    {
-      id: 2,
-      title: "Engineering note",
-      tag: "Architecture",
-      content:
-        "Frontend and backend should stay loosely coupled while sharing clear contracts.",
-    },
-  ]);
-  const [projectActivity] = useState([
-    {
-      id: 1,
-      actor: { username: "Ava" },
-      verb: "Updated roadmap and milestones",
-      created_at: "2026-09-05T10:00:00Z",
-    },
-    {
-      id: 2,
-      actor: { username: "Leo" },
-      verb: "Refined the dashboard experience",
-      created_at: "2026-09-05T09:30:00Z",
-    },
-    {
-      id: 3,
-      actor: { username: "System" },
-      verb: "Initialized the developer ecosystem workspace",
-      created_at: "2026-09-05T08:00:00Z",
-    },
-  ]);
   const [selectedWorkflow, setSelectedWorkflow] = useState(workflowLibrary[0]);
   const [authMode, setAuthMode] = useState("login");
   const [favoriteTools, setFavoriteTools] = useState([]);
@@ -573,141 +505,143 @@ function App() {
   return (
     <>
       <CyberOcean />
-    <div className="developeros-page">
-      <NavBar
-        setPage={setPage}
-        isAuthenticated={isAuthenticated}
-        handleLogout={handleLogout}
-        profile={accountProfile}
-      />
-
-      {page === "home" && (
-        <HomePage
-          setPage={setPage}
-          setSelectedTool={setSelectedTool}
-          favoriteTools={favoriteTools}
-          toggleFavorite={toggleFavorite}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          tools={tools}
-          workflows={workflowLibrary}
-          resources={resourceLibrary}
-          recommendations={recommendations}
-        />
-      )}
-      {page === "explore" && (
-        <ExplorePage
-          setPage={setPage}
-          setSelectedTool={setSelectedTool}
-          favoriteTools={favoriteTools}
-          toggleFavorite={toggleFavorite}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          tools={tools}
-        />
-      )}
-      {page === "workflows" && (
-        <WorkflowsPage
-          setPage={setPage}
-          setSelectedWorkflow={setSelectedWorkflow}
-          workflowData={workflowData}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-        />
-      )}
-      {page === "favorites" && (
-        <FavoritesPage
-          setPage={setPage}
-          favoriteTools={favoriteTools}
-          toggleFavorite={toggleFavorite}
-          setSelectedTool={setSelectedTool}
-        />
-      )}
-      {page === "resources" && (
-        <ResourcesPage
-          setPage={setPage}
-          resourceData={resourceData}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-        />
-      )}
-      {page === "auth" && (
-        <AuthPage
-          authMode={authMode}
-          setAuthMode={setAuthMode}
-          setPage={setPage}
-          onAuthSuccess={handleAuthSuccess}
-          loginWithBackend={loginWithBackend}
-          registerWithBackend={registerWithBackend}
-          initialError={authError}
-        />
-      )}
-      {page === "dashboard" && (
-        <DashboardPage
+      <div className="developeros-page">
+        <NavBar
           setPage={setPage}
           isAuthenticated={isAuthenticated}
-          favoriteTools={favoriteTools}
-          toggleFavorite={toggleFavorite}
-          setSelectedTool={setSelectedTool}
-          setSelectedProject={setSelectedProject}
+          handleLogout={handleLogout}
+          profile={accountProfile}
         />
-      )}
-      {page === "tool" && (
-        <ToolDetailPage
-          tool={selectedTool}
-          setPage={setPage}
-          toggleFavorite={toggleFavorite}
-          favoriteTools={favoriteTools}
-        />
-      )}
-      {page === "profile" && (
-        <ProfilePage
-          setPage={setPage}
-          isAuthenticated={isAuthenticated}
-          onProfileUpdate={setAccountProfile}
-        />
-      )}
-      {page === "project-detail" && (
-        <ProjectDetailPage
-          setPage={setPage}
-          project={selectedProject}
-          activeTab={projectTab}
-          setActiveTab={setProjectTab}
-          tasks={projectTasks}
-          notes={projectNotes}
-          activity={projectActivity}
-        />
-      )}
-      {page === "tasks" && <TasksPage setPage={setPage} tasks={[]} />}
-      {page === "notes" && <NotesPage setPage={setPage} notes={[]} />}
-      {page === "activity" && (
-        <ActivityPage setPage={setPage} activities={[]} />
-      )}
-      {page === "tags" && <TagsPage setPage={setPage} tags={[]} />}
-      {page === "bookmarks" && (
-        <BookmarksPage setPage={setPage} bookmarks={favoriteTools} />
-      )}
-      {page === "advanced" && <AdvancedDashboardPage setPage={setPage} />}
-      {page === "ai" && <AIAssistantPage setPage={setPage} />}
-      {page === "collaboration" && <CollaborationPage setPage={setPage} />}
-      {page === "production" && <ProductionPage setPage={setPage} />}
-      {page === "overview" && <OverviewPage setPage={setPage} project={{}} />}
-      {page === "snippets" && <SnippetsPage setPage={setPage} snippets={[]} />}
-      {page === "github" && <GitHubPage setPage={setPage} repo={{}} />}
-      {page === "workflow-detail" && (
-        <WorkflowDetailPage workflow={selectedWorkflow} setPage={setPage} />
-      )}
 
-      <Footer />
-    </div>
+        {page === "home" && (
+          <HomePage
+            setPage={setPage}
+            setSelectedTool={setSelectedTool}
+            favoriteTools={favoriteTools}
+            toggleFavorite={toggleFavorite}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            tools={tools}
+            workflows={workflowLibrary}
+            resources={resourceLibrary}
+            recommendations={recommendations}
+          />
+        )}
+        {page === "explore" && (
+          <ExplorePage
+            setPage={setPage}
+            setSelectedTool={setSelectedTool}
+            favoriteTools={favoriteTools}
+            toggleFavorite={toggleFavorite}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            tools={tools}
+          />
+        )}
+        {page === "workflows" && (
+          <WorkflowsPage
+            setPage={setPage}
+            setSelectedWorkflow={setSelectedWorkflow}
+            workflowData={workflowData}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+        )}
+        {page === "favorites" && (
+          <FavoritesPage
+            setPage={setPage}
+            favoriteTools={favoriteTools}
+            toggleFavorite={toggleFavorite}
+            setSelectedTool={setSelectedTool}
+          />
+        )}
+        {page === "resources" && (
+          <ResourcesPage
+            setPage={setPage}
+            resourceData={resourceData}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
+        )}
+        {page === "auth" && (
+          <AuthPage
+            authMode={authMode}
+            setAuthMode={setAuthMode}
+            setPage={setPage}
+            onAuthSuccess={handleAuthSuccess}
+            loginWithBackend={loginWithBackend}
+            registerWithBackend={registerWithBackend}
+            initialError={authError}
+          />
+        )}
+        {page === "dashboard" && (
+          <DashboardPage
+            setPage={setPage}
+            isAuthenticated={isAuthenticated}
+            favoriteTools={favoriteTools}
+            toggleFavorite={toggleFavorite}
+            setSelectedTool={setSelectedTool}
+            setSelectedProject={setSelectedProject}
+          />
+        )}
+        {page === "tool" && (
+          <ToolDetailPage
+            tool={selectedTool}
+            setPage={setPage}
+            toggleFavorite={toggleFavorite}
+            favoriteTools={favoriteTools}
+          />
+        )}
+        {page === "profile" && (
+          <ProfilePage
+            setPage={setPage}
+            isAuthenticated={isAuthenticated}
+            onProfileUpdate={setAccountProfile}
+          />
+        )}
+        {page === "project-detail" && (
+          <ProjectDetailPage
+            setPage={setPage}
+            project={selectedProject}
+            activeTab={projectTab}
+            setActiveTab={setProjectTab}
+            tasks={[]}
+            notes={[]}
+            activity={[]}
+          />
+        )}
+        {page === "tasks" && <TasksPage setPage={setPage} tasks={[]} />}
+        {page === "notes" && <NotesPage setPage={setPage} notes={[]} />}
+        {page === "activity" && (
+          <ActivityPage setPage={setPage} activities={[]} />
+        )}
+        {page === "tags" && <TagsPage setPage={setPage} tags={[]} />}
+        {page === "bookmarks" && (
+          <BookmarksPage setPage={setPage} bookmarks={favoriteTools} />
+        )}
+        {page === "advanced" && <AdvancedDashboardPage setPage={setPage} />}
+        {page === "ai" && <AIAssistantPage setPage={setPage} />}
+        {page === "collaboration" && <CollaborationPage setPage={setPage} />}
+        {page === "production" && <ProductionPage setPage={setPage} />}
+        {page === "overview" && <OverviewPage setPage={setPage} project={{}} />}
+        {page === "snippets" && (
+          <SnippetsPage setPage={setPage} snippets={[]} />
+        )}
+        {page === "github" && <GitHubPage setPage={setPage} repo={{}} />}
+        {page === "workflow-detail" && (
+          <WorkflowDetailPage workflow={selectedWorkflow} setPage={setPage} />
+        )}
+
+        <Footer />
+      </div>
     </>
   );
 }
