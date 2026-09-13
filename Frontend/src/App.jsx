@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import {
   API_URL,
@@ -14,7 +14,6 @@ import WorkflowsPage from "./Pages/WorkFlows/WorkFlows";
 import FavoritesPage from "./Pages/Favorites/Favorites";
 import ResourcesPage from "./Pages/Resources/Resources";
 import AuthPage from "./Pages/Auth/Auth";
-import DashboardPage from "./Pages/Dashbourd/Dashboard";
 import ProfilePage from "./Pages/Profile/Profile";
 import Footer from "./components/Footer/Footer";
 import ProjectDetailPage from "./Project/ProjectDetail/ProjectDetail";
@@ -30,7 +29,8 @@ import ProductionPage from "./Project/Production/Production";
 import OverviewPage from "./Project/Overview/Overview";
 import SnippetsPage from "./Project/Snippets/Snippets";
 import GitHubPage from "./Project/GitHub/GitHub";
-import CyberOcean from "./components/CyberMode";
+import DeveloperOSCommandCenter from "./components/DeveloperOSCommandCenter";
+import OSSidebar from "./components/OSSidebar";
 
 /* Legacy category presets retained for future catalog filtering.
 const categories = [
@@ -293,6 +293,13 @@ function App() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [resourceData, setResourceData] = useState(resourceLibrary);
   const [workflowData, setWorkflowData] = useState(workflowLibrary);
+  const [workspaceData, setWorkspaceData] = useState({
+    tasks: [],
+    notes: [],
+    activity: [],
+    tags: [],
+    snippets: [],
+  });
   const [isAuthenticated, setIsAuthenticated] = useState(
     Boolean(getAccessToken()),
   );
@@ -409,6 +416,46 @@ function App() {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      setWorkspaceData({ tasks: [], notes: [], activity: [], tags: [], snippets: [] });
+      return undefined;
+    }
+
+    let isCurrent = true;
+    const modules = ["tasks", "notes", "activity", "tags", "snippets"];
+
+    const loadWorkspaceData = async () => {
+      const results = await Promise.allSettled(
+        modules.map(async (name) => {
+          const response = await apiFetch(`/${name}/`);
+          return [name, await response.json()];
+        }),
+      );
+
+      if (!isCurrent) {
+        return;
+      }
+
+      const nextData = { tasks: [], notes: [], activity: [], tags: [], snippets: [] };
+      results.forEach((result) => {
+        if (result.status === "fulfilled") {
+          const [name, payload] = result.value;
+          nextData[name] = Array.isArray(payload) ? payload : [];
+        }
+      });
+      setWorkspaceData(nextData);
+    };
+
+    loadWorkspaceData().catch((error) => {
+      console.error("Failed to load workspace data:", error);
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [isAuthenticated]);
+
+  useEffect(() => {
     localStorage.setItem("favoriteTools", JSON.stringify(favoriteTools));
   }, [favoriteTools]);
 
@@ -502,9 +549,38 @@ function App() {
     setPage("dashboard");
   };
 
+  const openCommandCenterProject = (project) => {
+    setSelectedProject(project);
+    setProjectTab("overview");
+    setPage("project-detail");
+  };
+
+  const openCommandCenterTool = (tool) => {
+    setSelectedTool(tool);
+    setPage("tool");
+  };
+
+  if (page === "dashboard") {
+    return (
+      <DeveloperOSCommandCenter
+        isAuthenticated={isAuthenticated}
+        profile={accountProfile}
+        onNavigate={setPage}
+        onLogout={handleLogout}
+        onOpenProject={openCommandCenterProject}
+        onOpenTool={openCommandCenterTool}
+      />
+    );
+  }
+
   return (
-    <>
-      <CyberOcean />
+    <div className="developeros-shell">
+      <OSSidebar
+        page={page}
+        onNavigate={setPage}
+        isAuthenticated={isAuthenticated}
+        onLogout={handleLogout}
+      />
       <div className="developeros-page">
         <NavBar
           setPage={setPage}
@@ -582,16 +658,6 @@ function App() {
             initialError={authError}
           />
         )}
-        {page === "dashboard" && (
-          <DashboardPage
-            setPage={setPage}
-            isAuthenticated={isAuthenticated}
-            favoriteTools={favoriteTools}
-            toggleFavorite={toggleFavorite}
-            setSelectedTool={setSelectedTool}
-            setSelectedProject={setSelectedProject}
-          />
-        )}
         {page === "tool" && (
           <ToolDetailPage
             tool={selectedTool}
@@ -607,23 +673,23 @@ function App() {
             onProfileUpdate={setAccountProfile}
           />
         )}
-        {page === "project-detail" && (
-          <ProjectDetailPage
-            setPage={setPage}
-            project={selectedProject}
-            activeTab={projectTab}
-            setActiveTab={setProjectTab}
-            tasks={[]}
-            notes={[]}
-            activity={[]}
-          />
-        )}
-        {page === "tasks" && <TasksPage setPage={setPage} tasks={[]} />}
-        {page === "notes" && <NotesPage setPage={setPage} notes={[]} />}
+      {page === "project-detail" && (
+        <ProjectDetailPage
+          setPage={setPage}
+          project={selectedProject}
+          activeTab={projectTab}
+          setActiveTab={setProjectTab}
+          tasks={workspaceData.tasks.filter((item) => item.project === selectedProject?.id)}
+          notes={workspaceData.notes.filter((item) => item.project === selectedProject?.id)}
+          activity={workspaceData.activity}
+        />
+      )}
+        {page === "tasks" && <TasksPage setPage={setPage} tasks={workspaceData.tasks} />}
+        {page === "notes" && <NotesPage setPage={setPage} notes={workspaceData.notes} />}
         {page === "activity" && (
-          <ActivityPage setPage={setPage} activities={[]} />
+          <ActivityPage setPage={setPage} activities={workspaceData.activity} />
         )}
-        {page === "tags" && <TagsPage setPage={setPage} tags={[]} />}
+        {page === "tags" && <TagsPage setPage={setPage} tags={workspaceData.tags} />}
         {page === "bookmarks" && (
           <BookmarksPage setPage={setPage} bookmarks={favoriteTools} />
         )}
@@ -632,9 +698,7 @@ function App() {
         {page === "collaboration" && <CollaborationPage setPage={setPage} />}
         {page === "production" && <ProductionPage setPage={setPage} />}
         {page === "overview" && <OverviewPage setPage={setPage} project={{}} />}
-        {page === "snippets" && (
-          <SnippetsPage setPage={setPage} snippets={[]} />
-        )}
+        {page === "snippets" && <SnippetsPage setPage={setPage} snippets={workspaceData.snippets} />}
         {page === "github" && <GitHubPage setPage={setPage} repo={{}} />}
         {page === "workflow-detail" && (
           <WorkflowDetailPage workflow={selectedWorkflow} setPage={setPage} />
@@ -642,7 +706,7 @@ function App() {
 
         <Footer />
       </div>
-    </>
+    </div>
   );
 }
 

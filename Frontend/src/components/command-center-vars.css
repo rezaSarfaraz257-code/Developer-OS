@@ -1,0 +1,12 @@
+:root{
+  --os-bg: #000207;
+  --os-text: #d8f5ff;
+  --os-surface: rgba(1,13,24,.90);
+  --os-surface-2: rgba(0,5,12,.80);
+  --os-cyan: #00d8ff;
+  --os-blue: #007dff;
+  --os-violet: #a878ff;
+  --os-green: #00e5ac;
+  --os-border: #06365a;
+  --os-glow: rgba(0,200,255,.18);
+}
