@@ -1,9 +1,9 @@
 const navigationGroups = [
-  ["CORE", [["Dashboard", "dashboard", "DB"]]],
-  ["BUILD", [["Projects", "dashboard", "PR"], ["Tasks", "tasks", "TS"], ["Workflows", "workflows", "WF"]]],
-  ["KNOW", [["Resources", "resources", "RS"], ["Tools", "explore", "TL"], ["Saved", "favorites", "SV"]]],
-  ["CONNECT", [["GitHub", "github", "GH"], ["AI Core", "ai", "AI"]]],
-  ["SYSTEM", [["Activity", "activity", "AC"], ["Analytics", "advanced", "AN"], ["Settings", "profile", "ST"]]],
+  ["CORE", [["Dashboard", "dashboard", "D"]]],
+  ["BUILD", [["Projects", "dashboard", "P"], ["Tasks", "tasks", "T"], ["Workflows", "workflows", "W"]]],
+  ["KNOW", [["Resources", "resources", "R"], ["Tools", "explore", "TL"], ["Saved", "favorites", "S"]]],
+  ["CONNECT", [["GitHub", "github", "G"], ["AI Core", "ai", "AI"]]],
+  ["SYSTEM", [["Activity", "activity", "A"], ["Analytics", "advanced", "AN"], ["Settings", "profile", "ST"]]],
 ];
 
 export default function OSSidebar({ page, onNavigate, isAuthenticated, onLogout }) {

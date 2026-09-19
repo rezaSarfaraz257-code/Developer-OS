@@ -1,10 +1,10 @@
 const nodeDefinitions = [
-  { id: "github", label: "GitHub", icon: "GH" },
-  { id: "projects", label: "Cloud", icon: "CL" },
-  { id: "resources", label: "Database", icon: "DB" },
+  { id: "github", label: "GitHub", icon: "G" },
+  { id: "projects", label: "Cloud", icon: "C" },
+  { id: "resources", label: "Database", icon: "D" },
   { id: "tools", label: "Docker", icon: "DK" },
   { id: "ai", label: "AI Core", icon: "AI" },
-  { id: "workflows", label: "Kubernetes", icon: "KB" },
+  { id: "workflows", label: "Kubernetes", icon: "K" },
 ];
 
 function nodeStatus(definition, data) {
